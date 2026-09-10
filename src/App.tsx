@@ -47,7 +47,7 @@ export default function App() {
   }
 
   return (
-    <div className="h-full min-h-0">
+    <div className="flex h-full min-h-0 flex-1 flex-col">
     <Routes>
       <Route path="/onboarding" element={<OnboardingPage />} />
       <Route path="/quick-expense" element={<QuickExpensePage />} />

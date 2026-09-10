@@ -25,9 +25,9 @@ function titleFor(sheet: SheetT): string {
     case 'income-detail':
       return 'Income'
     case 'log':
-      return sheet.logId ? 'Edit Log' : 'Add Machine Log'
+      return sheet.logId ? 'Edit hours' : 'Log hours'
     case 'log-detail':
-      return 'Machine Log'
+      return 'Hours log'
     case 'site-switcher':
       return 'Your Sites'
     case 'site-form':
@@ -51,7 +51,7 @@ export function SheetHost() {
   const open = !!top
 
   return (
-    <Sheet open={open} onClose={closeSheet} title={top ? titleFor(top) : undefined} height={top?.name === 'expense' || top?.name === 'log' ? 'full' : 'auto'}>
+    <Sheet open={open} onClose={closeSheet} title={top ? titleFor(top) : undefined} height={top?.name === 'expense' || top?.name === 'log' || top?.name === 'income' ? 'full' : 'auto'}>
       {top && (
         <>
           <SheetHeader title={titleFor(top)} onClose={top.name === 'confirm' ? undefined : closeSheet} />

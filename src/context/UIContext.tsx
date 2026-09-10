@@ -44,7 +44,7 @@ type UIState = {
   hideToast: () => void
   undoExpense: (row: Expense, message?: string) => Promise<void>
   undoIncome: (row: Income) => Promise<void>
-  undoLog: (row: MachineLog, expense?: Expense) => Promise<void>
+  undoLog: (row: MachineLog) => Promise<void>
 }
 
 const Ctx = createContext<UIState | null>(null)
@@ -113,13 +113,13 @@ export function UIProvider({ children }: { children: ReactNode }) {
   )
 
   const undoLog = useCallback(
-    async (row: MachineLog, expense?: Expense) => {
+    async (row: MachineLog) => {
       await machineLogRepo.remove(row.id)
       showToast({
-        message: 'Log deleted',
+        message: 'Hours log deleted',
         actionLabel: 'Undo',
         onAction: () => {
-          void machineLogRepo.restore(row, expense)
+          void machineLogRepo.restore(row)
         },
       })
     },

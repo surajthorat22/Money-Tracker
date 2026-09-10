@@ -43,8 +43,8 @@ export function Sheet({
         aria-modal="true"
         aria-label={title}
         className={cn(
-          'sheet-panel relative z-10 w-full overflow-hidden rounded-t-[22px]',
-          height === 'full' ? 'max-h-[92%]' : 'max-h-[88%]',
+          'sheet-panel relative z-10 flex w-full flex-col overflow-hidden rounded-t-[22px]',
+          height === 'full' ? 'h-[92%] max-h-[92%]' : 'max-h-[88%]',
           anim && 'open',
         )}
         style={{
@@ -53,10 +53,12 @@ export function Sheet({
           boxShadow: '0 -12px 40px rgba(0,0,0,0.28)',
         }}
       >
-        <div className="flex justify-center pt-2 pb-1">
+        <div className="flex shrink-0 justify-center pt-2 pb-1">
           <div className="h-1.5 w-10 rounded-full bg-[var(--fill-strong)]" />
         </div>
-        {children}
+        <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          {children}
+        </div>
       </div>
     </div>
   )

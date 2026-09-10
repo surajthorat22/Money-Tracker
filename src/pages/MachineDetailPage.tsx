@@ -8,7 +8,6 @@ import { useUI } from '@/context/UIContext'
 import { db } from '@/db/db'
 import { machineHours } from '@/utils/calc'
 import { formatDateShort } from '@/utils/dates'
-import { formatINR } from '@/utils/format'
 
 export function MachineDetailPage() {
   const { machineId } = useParams()
@@ -26,21 +25,18 @@ export function MachineDetailPage() {
   const s = machineHours(logs, machine.id)
 
   return (
-    <div className="px-4">
-      <button type="button" className="mb-2 flex items-center gap-1 text-[var(--accent)]" onClick={() => nav(-1)}>
+    <div className="px-4 pb-4">
+      <button type="button" className="mb-2 flex items-center gap-1 text-[var(--accent)]" onClick={() => nav('/log')}>
         <ChevronLeft size={18} /> Log
       </button>
       <div className="flex items-end justify-between">
-        <div>
-          <h1 className="text-[28px] font-semibold tracking-tight">{machine.name}</h1>
-          <div className="text-[13px] text-[var(--secondary)]">{formatINR(machine.defaultRate ?? 0)}/hour</div>
-        </div>
+        <h1 className="text-[28px] font-semibold tracking-tight">{machine.name}</h1>
         <button
           type="button"
           className="text-[14px] font-semibold text-[var(--accent)]"
           onClick={() => openSheet({ name: 'log', machineId: machine.id })}
         >
-          + Log
+          + Log hours
         </button>
       </div>
 
@@ -48,22 +44,18 @@ export function MachineDetailPage() {
         <Card>
           <div className="text-[12px] text-[var(--secondary)]">Today</div>
           <div className="tabular text-[18px] font-semibold">{s.todayHours} hrs</div>
-          <div className="text-[12px] text-[var(--tertiary)]">{formatINR(s.todayCost)}</div>
         </Card>
         <Card>
           <div className="text-[12px] text-[var(--secondary)]">This week</div>
           <div className="tabular text-[18px] font-semibold">{s.weekHours} hrs</div>
-          <div className="text-[12px] text-[var(--tertiary)]">{formatINR(s.weekCost)}</div>
         </Card>
         <Card>
           <div className="text-[12px] text-[var(--secondary)]">This month</div>
           <div className="tabular text-[18px] font-semibold">{s.monthHours} hrs</div>
-          <div className="text-[12px] text-[var(--tertiary)]">{formatINR(s.monthCost)}</div>
         </Card>
         <Card>
           <div className="text-[12px] text-[var(--secondary)]">Total</div>
           <div className="tabular text-[18px] font-semibold">{s.totalHours} hrs</div>
-          <div className="text-[12px] text-[var(--tertiary)]">{formatINR(s.totalCost)}</div>
         </Card>
       </div>
 
@@ -72,7 +64,7 @@ export function MachineDetailPage() {
         <EmptyState
           title={`No ${machine.name} logs`}
           body="Log hours from the site in a few seconds."
-          action="+ Add Log"
+          action="+ Log hours"
           onAction={() => openSheet({ name: 'log', machineId: machine.id })}
         />
       ) : (
@@ -87,11 +79,11 @@ export function MachineDetailPage() {
               <div>
                 <div className="text-[15px] font-medium">{formatDateShort(l.date)}</div>
                 <div className="text-[12px] text-[var(--secondary)]">
-                  {l.hours} hrs · {formatINR(l.rate)}/hr
-                  {l.operator ? ` · ${l.operator}` : ''}
+                  {l.startTime && l.endTime ? `${l.startTime} – ${l.endTime}` : ''}
+                  {l.operator ? `${l.startTime ? ' · ' : ''}${l.operator}` : ''}
                 </div>
               </div>
-              <div className="tabular font-semibold">{formatINR(l.hours * l.rate)}</div>
+              <div className="tabular font-semibold">{l.hours} hrs</div>
             </button>
           ))}
         </div>

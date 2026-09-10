@@ -133,17 +133,10 @@ export const machineLogRepo = {
     await db.machineLogs.update(id, { ...patch, updatedAt: nowISO() })
   },
   remove: async (id: string) => {
-    const log = await db.machineLogs.get(id)
-    await db.transaction('rw', db.machineLogs, db.expenses, async () => {
-      if (log?.expenseId) await db.expenses.delete(log.expenseId)
-      await db.machineLogs.delete(id)
-    })
+    await db.machineLogs.delete(id)
   },
-  restore: async (row: MachineLog, expense?: Expense) => {
-    await db.transaction('rw', db.machineLogs, db.expenses, async () => {
-      await db.machineLogs.put(row)
-      if (expense) await db.expenses.put(expense)
-    })
+  restore: async (row: MachineLog) => {
+    await db.machineLogs.put(row)
   },
 }
 

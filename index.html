@@ -8,7 +8,8 @@
       name="viewport"
       content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1"
     />
-    <meta name="theme-color" content="#007aff" />
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f4f6fa" media="(prefers-color-scheme: light)" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -19,6 +20,78 @@
       content="Track plot and site expenses, machines, vendors, and income — built for iPhone."
     />
     <title>Plot Tracker</title>
+    <link rel="apple-touch-startup-image" href="/splash/dark-1170x2532.png" media="(prefers-color-scheme: dark) and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)" />
+    <link rel="apple-touch-startup-image" href="/splash/light-1170x2532.png" media="(prefers-color-scheme: light) and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)" />
+    <link rel="apple-touch-startup-image" href="/splash/dark-1179x2556.png" media="(prefers-color-scheme: dark) and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)" />
+    <link rel="apple-touch-startup-image" href="/splash/light-1179x2556.png" media="(prefers-color-scheme: light) and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)" />
+    <link rel="apple-touch-startup-image" href="/splash/dark-1206x2622.png" media="(prefers-color-scheme: dark) and (device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3)" />
+    <link rel="apple-touch-startup-image" href="/splash/light-1206x2622.png" media="(prefers-color-scheme: light) and (device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3)" />
+    <link rel="apple-touch-startup-image" href="/splash/dark-1284x2778.png" media="(prefers-color-scheme: dark) and (device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)" />
+    <link rel="apple-touch-startup-image" href="/splash/light-1284x2778.png" media="(prefers-color-scheme: light) and (device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)" />
+    <link rel="apple-touch-startup-image" href="/splash/dark-1290x2796.png" media="(prefers-color-scheme: dark) and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)" />
+    <link rel="apple-touch-startup-image" href="/splash/light-1290x2796.png" media="(prefers-color-scheme: light) and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)" />
+    <link rel="apple-touch-startup-image" href="/splash/dark-1320x2868.png" media="(prefers-color-scheme: dark) and (device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3)" />
+    <link rel="apple-touch-startup-image" href="/splash/light-1320x2868.png" media="(prefers-color-scheme: light) and (device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3)" />
+    <style>
+      html, body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        height: var(--app-height, 100dvh);
+        overflow: hidden;
+        background: #000000;
+      }
+      body { position: fixed; inset: 0; }
+      #root {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        height: var(--app-height, 100dvh);
+        overflow: hidden;
+      }
+      @media (prefers-color-scheme: light) {
+        html, body { background: #f4f6fa; }
+      }
+    </style>
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('plot-tracker-theme') || 'system'
+          var dark =
+            stored === 'dark' ||
+            (stored !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+          var color = dark ? '#000000' : '#f4f6fa'
+          var html = document.documentElement
+          html.classList.add(dark ? 'dark' : 'light')
+          html.style.backgroundColor = color
+          html.style.colorScheme = dark ? 'dark' : 'light'
+          function setAppHeight() {
+            var h = window.innerHeight
+            if (window.visualViewport) {
+              h = Math.max(h, Math.round(window.visualViewport.height + (window.visualViewport.offsetTop || 0)))
+            }
+            html.style.setProperty('--app-height', h + 'px')
+            html.style.height = h + 'px'
+            if (document.body) document.body.style.height = h + 'px'
+            var root = document.getElementById('root')
+            if (root) {
+              root.style.height = h + 'px'
+              root.style.minHeight = h + 'px'
+            }
+          }
+          setAppHeight()
+          window.addEventListener('resize', setAppHeight)
+          if (window.visualViewport) window.visualViewport.addEventListener('resize', setAppHeight)
+          document.addEventListener('DOMContentLoaded', function () {
+            document.body.style.backgroundColor = color
+            setAppHeight()
+          })
+          var metas = document.querySelectorAll('meta[name="theme-color"]')
+          for (var i = 0; i < metas.length; i++) metas[i].setAttribute('content', color)
+        } catch (e) {}
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

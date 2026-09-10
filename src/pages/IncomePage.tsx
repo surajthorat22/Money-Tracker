@@ -45,12 +45,21 @@ export function IncomePage() {
   }
 
   return (
-    <div className="px-4">
-      <div className="px-1">
-        <div className="text-[13px] text-[var(--secondary)]">Money Received</div>
-        <div className="tabular text-[36px] font-semibold tracking-tight text-[var(--income)]">
-          {formatINR(flow.received)}
+    <div className="px-4 pb-4">
+      <div className="flex items-end justify-between px-1">
+        <div>
+          <div className="text-[13px] text-[var(--secondary)]">Money Received</div>
+          <div className="tabular text-[32px] font-semibold tracking-tight text-[var(--income)]">
+            {formatINR(flow.received)}
+          </div>
         </div>
+        <button
+          type="button"
+          className="mb-1 h-10 shrink-0 rounded-full bg-[var(--accent)] px-4 text-[14px] font-semibold text-[var(--on-accent)]"
+          onClick={() => openSheet({ name: 'income' })}
+        >
+          + Add Income
+        </button>
       </div>
       <div className="mt-4 grid grid-cols-2 gap-2">
         <Card>
@@ -121,6 +130,13 @@ export function IncomePage() {
           ))}
         </div>
       )}
+      <button
+        type="button"
+        className="pressable mt-4 flex h-12 w-full items-center justify-center rounded-[14px] bg-[var(--accent)] text-[16px] font-semibold text-[var(--on-accent)]"
+        onClick={() => openSheet({ name: 'income' })}
+      >
+        + Add Income
+      </button>
     </div>
   )
 }

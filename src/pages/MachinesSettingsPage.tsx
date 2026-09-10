@@ -4,7 +4,6 @@ import { useApp } from '@/context/AppContext'
 import { useUI } from '@/context/UIContext'
 import { machineRepo } from '@/db/repositories'
 import { Back } from '@/pages/SitesSettingsPage'
-import { formatINR } from '@/utils/format'
 
 export function MachinesSettingsPage() {
   const { machines } = useApp()
@@ -20,7 +19,6 @@ export function MachinesSettingsPage() {
           <Row
             key={m.id}
             label={m.name}
-            value={`${formatINR(m.defaultRate ?? 0)}/hr`}
             onClick={() => openSheet({ name: 'machine-form', machineId: m.id })}
             trailing={
               <button

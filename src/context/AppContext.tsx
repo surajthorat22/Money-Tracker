@@ -11,6 +11,7 @@ import { db } from '@/db/db'
 import { settingsRepo } from '@/db/repositories'
 import type { AppSettings, Category, Machine, Site, Vendor } from '@/types'
 import { setHapticsEnabled } from '@/utils/haptics'
+import { applyTheme } from '@/utils/theme'
 
 type AppState = {
   ready: boolean
@@ -26,17 +27,6 @@ type AppState = {
 }
 
 const Ctx = createContext<AppState | null>(null)
-
-function applyTheme(theme: AppSettings['theme']) {
-  const dark =
-    theme === 'dark' ||
-    (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
-  document.documentElement.classList.toggle('dark', dark)
-  document.documentElement.classList.toggle('light', !dark)
-  const color = dark ? '#000000' : '#f4f6fa'
-  const meta = document.querySelector('meta[name="theme-color"]')
-  if (meta) meta.setAttribute('content', color)
-}
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const settings = useLiveQuery(() => db.settings.get('app'))

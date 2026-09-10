@@ -75,8 +75,6 @@ export function logsCSV(
       Machine: names.machines[l.machineId] ?? l.machineId,
       Site: names.sites[l.siteId] ?? '',
       Hours: l.hours,
-      Rate: l.rate,
-      Cost: l.hours * l.rate,
       Operator: l.operator ?? '',
       Start: l.startTime ?? '',
       End: l.endTime ?? '',

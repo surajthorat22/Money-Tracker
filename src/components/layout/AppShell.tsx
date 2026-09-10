@@ -23,11 +23,11 @@ export function AppShell() {
   }
 
   return (
-    <div className="relative flex h-full min-h-0 flex-col overflow-hidden">
+    <div className="relative flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden">
       <Header />
       <main
-        className="no-scrollbar min-h-0 flex-1 overflow-y-auto"
-        style={{ paddingBottom: hideFab ? 16 : 88 }}
+        className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
+        style={{ paddingBottom: hideFab ? 'calc(var(--nav-h) + 16px)' : 'calc(var(--nav-h) + 76px)' }}
       >
         <Outlet />
       </main>

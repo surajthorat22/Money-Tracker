@@ -63,7 +63,7 @@ export function ReportsPage() {
           onClick={() => {
             const rows = machines.map((m) => {
               const s = machineHours(logs, m.id)
-              return { Machine: m.name, Hours: s.totalHours, Cost: s.totalCost }
+              return { Machine: m.name, Hours: s.totalHours }
             })
             downloadText('machines.csv', toCSV(rows), 'text/csv')
           }}

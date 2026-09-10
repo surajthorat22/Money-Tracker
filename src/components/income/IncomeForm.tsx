@@ -63,7 +63,7 @@ export function IncomeForm({
   }
 
   return (
-    <div>
+    <div className="pb-6">
       <NumberPad value={amount} onChange={setAmount} />
       <section className="mt-3 px-4">
         <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--tertiary)]">

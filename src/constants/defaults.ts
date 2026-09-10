@@ -14,13 +14,13 @@ export const QUICK_CATEGORY_IDS = [
 ] as const
 
 export const DEFAULT_MACHINES: Omit<Machine, 'createdAt' | 'updatedAt'>[] = [
-  { id: 'mach-jcb', name: 'JCB', defaultRate: 1500, rateUnit: 'Hours' },
-  { id: 'mach-tractor', name: 'Tractor', defaultRate: 1200, rateUnit: 'Hours' },
-  { id: 'mach-roller', name: 'Roller', defaultRate: 1800, rateUnit: 'Hours' },
-  { id: 'mach-excavator', name: 'Excavator', defaultRate: 2000, rateUnit: 'Hours' },
-  { id: 'mach-crane', name: 'Crane', defaultRate: 2500, rateUnit: 'Hours' },
-  { id: 'mach-loader', name: 'Loader', defaultRate: 1400, rateUnit: 'Hours' },
-  { id: 'mach-other', name: 'Other Machine', defaultRate: 1000, rateUnit: 'Hours' },
+  { id: 'mach-jcb', name: 'JCB', rateUnit: 'Hours' },
+  { id: 'mach-tractor', name: 'Tractor', rateUnit: 'Hours' },
+  { id: 'mach-roller', name: 'Roller', rateUnit: 'Hours' },
+  { id: 'mach-excavator', name: 'Excavator', rateUnit: 'Hours' },
+  { id: 'mach-crane', name: 'Crane', rateUnit: 'Hours' },
+  { id: 'mach-loader', name: 'Loader', rateUnit: 'Hours' },
+  { id: 'mach-other', name: 'Other Machine', rateUnit: 'Hours' },
 ]
 
 type CatSeed = Omit<Category, 'createdAt' | 'updatedAt'>

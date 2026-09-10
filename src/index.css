@@ -8,7 +8,6 @@
 }
 
 :root {
-  color-scheme: light;
   --bg: #f4f6fa;
   --bg-elevated: #ffffff;
   --bg-grouped: #f4f6fa;
@@ -34,6 +33,10 @@
   --positive-bg: rgba(0, 122, 255, 0.12);
   --negative-bg: rgba(215, 0, 21, 0.1);
   --nav-h: calc(49px + env(safe-area-inset-bottom, 0px));
+}
+
+.light {
+  color-scheme: light;
 }
 
 .dark {
@@ -64,24 +67,45 @@
   --negative-bg: rgba(255, 105, 97, 0.12);
 }
 
+html {
+  background: var(--bg);
+  height: 100%;
+  height: 100dvh;
+  height: -webkit-fill-available;
+}
+
 html,
 body {
   margin: 0;
   width: 100%;
-  height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
 }
 
-html {
-  background: var(--bg);
+body {
+  position: fixed;
+  inset: 0;
+  height: 100%;
+  height: var(--app-height, 100dvh);
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not(.light) {
+    color-scheme: dark;
+    background: #000000;
+  }
 }
 
 #root {
-  position: fixed;
+  position: absolute;
   inset: 0;
-  overflow: hidden;
   width: 100%;
+  height: 100%;
+  height: var(--app-height, 100dvh);
+  min-height: -webkit-fill-available;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 body {
@@ -111,9 +135,11 @@ button {
 }
 
 .app-frame {
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   width: 100%;
   max-width: 100%;
+  height: 100%;
   margin: 0 auto;
   background: var(--bg);
   position: relative;
@@ -125,7 +151,8 @@ button {
 .app-frame > * {
   flex: 1;
   min-height: 0;
-  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 @media (min-width: 768px) {

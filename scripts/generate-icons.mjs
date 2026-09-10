@@ -103,3 +103,31 @@ for (const size of [192, 512, 180]) {
   await fs.writeFile(dest, buf)
   console.log('wrote', dest)
 }
+
+function solid(width, height, r, g, b) {
+  const data = Buffer.alloc(width * height * 4)
+  for (let i = 0; i < width * height; i++) {
+    const o = i * 4
+    data[o] = r
+    data[o + 1] = g
+    data[o + 2] = b
+    data[o + 3] = 255
+  }
+  return png(width, height, data)
+}
+
+const splashes = [
+  [1170, 2532],
+  [1179, 2556],
+  [1206, 2622],
+  [1284, 2778],
+  [1290, 2796],
+  [1320, 2868],
+]
+await mkdir(join(root, 'public/splash'), { recursive: true })
+const fs = await import('node:fs/promises')
+for (const [w, h] of splashes) {
+  await fs.writeFile(join(root, `public/splash/dark-${w}x${h}.png`), solid(w, h, 0, 0, 0))
+  await fs.writeFile(join(root, `public/splash/light-${w}x${h}.png`), solid(w, h, 244, 246, 250))
+  console.log('wrote splash', w, h)
+}

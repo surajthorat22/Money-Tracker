@@ -3,10 +3,8 @@ import { useMemo, useState } from 'react'
 import { Chip } from '@/components/ui/Chip'
 import { useApp } from '@/context/AppContext'
 import { db } from '@/db/db'
-import { expenseRepo, machineLogRepo, settingsRepo } from '@/db/repositories'
-import { machineCategoryId } from '@/utils/calc'
+import { machineLogRepo, settingsRepo } from '@/db/repositories'
 import { hoursBetween, todayISO } from '@/utils/dates'
-import { formatINR } from '@/utils/format'
 import { haptic } from '@/utils/haptics'
 
 export function MachineLogForm({
@@ -18,7 +16,7 @@ export function MachineLogForm({
   machineId?: string
   onSaved?: () => void
 }) {
-  const { currentSiteId, machines, categories, settings } = useApp()
+  const { currentSiteId, machines, settings } = useApp()
   const existing = useLiveQuery(() => (logId ? db.machineLogs.get(logId) : undefined), [logId])
   const [mid, setMid] = useState(machineId ?? settings?.lastMachineId ?? machines[0]?.id)
   const [mode, setMode] = useState<'hours' | 'range'>('hours')
@@ -26,15 +24,11 @@ export function MachineLogForm({
   const [start, setStart] = useState('09:00')
   const [end, setEnd] = useState('17:30')
   const [brk, setBrk] = useState('0.5')
-  const [rate, setRate] = useState('')
   const [operator, setOperator] = useState('')
   const [note, setNote] = useState('')
   const [date, setDate] = useState(todayISO())
-  const [asExpense, setAsExpense] = useState(true)
   const [hydrated, setHydrated] = useState(false)
   const [saving, setSaving] = useState(false)
-
-  const machine = machines.find((m) => m.id === mid)
 
   if (existing && !hydrated) {
     setMid(existing.machineId)
@@ -42,15 +36,12 @@ export function MachineLogForm({
     setStart(existing.startTime ?? '09:00')
     setEnd(existing.endTime ?? '17:30')
     setBrk(String(existing.breakHours ?? 0))
-    setRate(String(existing.rate))
     setOperator(existing.operator ?? '')
     setNote(existing.note ?? '')
     setDate(existing.date)
     setMode(existing.startTime ? 'range' : 'hours')
-    setAsExpense(!!existing.expenseId)
     setHydrated(true)
-  } else if (!hydrated && machine && !rate) {
-    setRate(String(machine.defaultRate ?? 0))
+  } else if (!hydrated) {
     setHydrated(true)
   }
 
@@ -58,9 +49,6 @@ export function MachineLogForm({
     if (mode === 'range') return hoursBetween(start, end, Number(brk || 0))
     return Number(hours || 0)
   }, [mode, start, end, brk, hours])
-
-  const r = Number(rate || machine?.defaultRate || 0)
-  const cost = computedHours * r
 
   async function save() {
     if (!currentSiteId || !mid || computedHours <= 0) {
@@ -76,51 +64,12 @@ export function MachineLogForm({
       startTime: mode === 'range' ? start : undefined,
       endTime: mode === 'range' ? end : undefined,
       breakHours: mode === 'range' ? Number(brk || 0) : undefined,
-      rate: r,
+      rate: 0,
       operator: operator.trim() || undefined,
       note: note.trim() || undefined,
     }
-
-    if (logId) {
-      await machineLogRepo.update(logId, payload)
-      const log = await db.machineLogs.get(logId)
-      if (asExpense && !log?.expenseId) {
-        const catId = machine ? machineCategoryId(machine, categories) : undefined
-        if (catId) {
-          const exp = await expenseRepo.add({
-            siteId: currentSiteId,
-            categoryId: catId,
-            amount: cost,
-            quantity: computedHours,
-            unit: 'Hours',
-            paymentMethod: 'Cash',
-            date,
-            note: `${machine?.name ?? 'Machine'} · ${computedHours} hrs`,
-            machineLogId: logId,
-          })
-          await machineLogRepo.update(logId, { expenseId: exp.id })
-        }
-      }
-    } else {
-      const log = await machineLogRepo.add(payload)
-      if (asExpense) {
-        const catId = machine ? machineCategoryId(machine, categories) : undefined
-        if (catId) {
-          const exp = await expenseRepo.add({
-            siteId: currentSiteId,
-            categoryId: catId,
-            amount: cost,
-            quantity: computedHours,
-            unit: 'Hours',
-            paymentMethod: 'Cash',
-            date,
-            note: `${machine?.name ?? 'Machine'} · ${computedHours} hrs${operator ? ` · ${operator}` : ''}`,
-            machineLogId: log.id,
-          })
-          await machineLogRepo.update(log.id, { expenseId: exp.id })
-        }
-      }
-    }
+    if (logId) await machineLogRepo.update(logId, payload)
+    else await machineLogRepo.add(payload)
     await settingsRepo.update({ lastMachineId: mid })
     haptic('success')
     setSaving(false)
@@ -135,15 +84,7 @@ export function MachineLogForm({
         </div>
         <div className="flex flex-wrap gap-1.5">
           {machines.map((m) => (
-            <Chip
-              key={m.id}
-              label={m.name}
-              active={mid === m.id}
-              onClick={() => {
-                setMid(m.id)
-                setRate(String(m.defaultRate ?? 0))
-              }}
-            />
+            <Chip key={m.id} label={m.name} active={mid === m.id} onClick={() => setMid(m.id)} />
           ))}
         </div>
       </section>
@@ -195,21 +136,9 @@ export function MachineLogForm({
         </div>
       )}
 
-      <div className="mt-3 px-4 text-center">
-        <div className="text-[13px] text-[var(--secondary)]">
-          {computedHours} hrs × {formatINR(r)} ={' '}
-          <span className="font-semibold text-[var(--label)]">{formatINR(cost)}</span>
-        </div>
-      </div>
+      <div className="mt-3 px-4 text-center text-[15px] font-semibold">{computedHours} hrs</div>
 
       <div className="mt-3 space-y-2 px-4">
-        <input
-          inputMode="decimal"
-          value={rate}
-          onChange={(e) => setRate(e.target.value)}
-          placeholder="Rate per hour"
-          className="h-11 w-full rounded-[12px] bg-[var(--fill)] px-3 text-[16px]"
-        />
         <input
           value={operator}
           onChange={(e) => setOperator(e.target.value)}
@@ -228,10 +157,6 @@ export function MachineLogForm({
           placeholder="Note"
           className="h-11 w-full rounded-[12px] bg-[var(--fill)] px-3 text-[16px]"
         />
-        <label className="flex min-h-11 items-center justify-between text-[15px]">
-          Add this as Expense
-          <input type="checkbox" checked={asExpense} onChange={(e) => setAsExpense(e.target.checked)} />
-        </label>
       </div>
 
       <div className="px-4 pt-3">
@@ -241,7 +166,7 @@ export function MachineLogForm({
           onClick={() => void save()}
           className="pressable flex h-12 w-full items-center justify-center rounded-[14px] bg-[var(--accent)] text-[17px] font-semibold text-[var(--on-accent)] disabled:opacity-40"
         >
-          Save Log
+          Save hours
         </button>
       </div>
     </div>

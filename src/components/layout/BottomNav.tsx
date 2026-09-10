@@ -13,7 +13,7 @@ const TABS = [
 export function BottomNav() {
   return (
     <nav
-      className="glass z-20 shrink-0 border-t border-[var(--hairline)]"
+      className="glass fixed right-0 bottom-0 left-0 z-20 border-t border-[var(--hairline)] md:left-1/2 md:right-auto md:w-[430px] md:-translate-x-1/2"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="grid grid-cols-4">
