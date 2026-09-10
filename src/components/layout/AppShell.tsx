@@ -23,15 +23,11 @@ export function AppShell() {
   }
 
   return (
-    <div className="relative flex min-h-dvh flex-col">
+    <div className="relative flex h-full min-h-0 flex-col overflow-hidden">
       <Header />
       <main
-        className="no-scrollbar flex-1 overflow-y-auto"
-        style={{
-          paddingBottom: hideFab
-            ? 'calc(70px + env(safe-area-inset-bottom))'
-            : 'calc(150px + env(safe-area-inset-bottom))',
-        }}
+        className="no-scrollbar min-h-0 flex-1 overflow-y-auto"
+        style={{ paddingBottom: hideFab ? 16 : 88 }}
       >
         <Outlet />
       </main>

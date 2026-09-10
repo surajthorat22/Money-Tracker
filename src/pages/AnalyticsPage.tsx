@@ -52,7 +52,7 @@ export function AnalyticsPage() {
               <PieChart>
                 <Pie data={cats.map((c) => ({ name: c.category.name, value: c.total }))} dataKey="value" innerRadius={40} outerRadius={70} stroke="none">
                   {cats.map((c) => (
-                    <Cell key={c.category.id} fill={c.category.color ?? '#3ee0a0'} />
+                    <Cell key={c.category.id} fill={c.category.color ?? '#007aff'} />
                   ))}
                 </Pie>
               </PieChart>

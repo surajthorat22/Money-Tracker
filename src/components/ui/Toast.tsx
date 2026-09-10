@@ -6,7 +6,7 @@ export function ToastHost() {
   return (
     <div
       className="absolute inset-x-4 z-50 flex items-center justify-between rounded-[14px] bg-[#1c1c1e] px-4 py-3 text-white shadow-lg dark:bg-[#2c2c2e]"
-      style={{ bottom: 'calc(78px + env(safe-area-inset-bottom))' }}
+      style={{ bottom: 'calc(var(--nav-h) + 12px)' }}
       role="status"
     >
       <span className="text-[14px] font-medium">{toast.message}</span>

@@ -33,7 +33,7 @@ export default function App() {
 
   if (!ready) {
     return (
-      <div className="flex min-h-dvh items-center justify-center">
+      <div className="flex h-full min-h-0 items-center justify-center">
         <div className="text-center">
           <div className="text-[13px] font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">Plot Tracker</div>
           <div className="mt-2 text-[15px] text-[var(--secondary)]">Opening your notebook…</div>
@@ -47,6 +47,7 @@ export default function App() {
   }
 
   return (
+    <div className="h-full min-h-0">
     <Routes>
       <Route path="/onboarding" element={<OnboardingPage />} />
       <Route path="/quick-expense" element={<QuickExpensePage />} />
@@ -70,5 +71,6 @@ export default function App() {
         <Route path="/vendor/:id" element={<VendorDetailPage />} />
       </Route>
     </Routes>
+    </div>
   )
 }

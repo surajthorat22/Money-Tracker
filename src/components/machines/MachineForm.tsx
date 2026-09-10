@@ -29,7 +29,7 @@ export function MachineForm({ machineId, onSaved }: { machineId?: string; onSave
     <div className="space-y-2 px-4 pb-4">
       <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Machine name — JCB" className="h-12 w-full rounded-[12px] bg-[var(--fill)] px-3 text-[16px]" autoFocus />
       <input inputMode="decimal" value={rate} onChange={(e) => setRate(e.target.value)} placeholder="Default rate ₹ / hour" className="h-11 w-full rounded-[12px] bg-[var(--fill)] px-3 text-[16px]" />
-      <button type="button" onClick={() => void save()} className="pressable flex h-12 w-full items-center justify-center rounded-[14px] bg-[var(--accent)] text-[17px] font-semibold text-[#06281c]">
+      <button type="button" onClick={() => void save()} className="pressable flex h-12 w-full items-center justify-center rounded-[14px] bg-[var(--accent)] text-[17px] font-semibold text-[var(--on-accent)]">
         {machineId ? 'Save Machine' : 'Add Machine'}
       </button>
     </div>

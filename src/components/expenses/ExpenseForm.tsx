@@ -169,7 +169,7 @@ export function ExpenseForm({
                 className={cn(
                   'flex min-h-9 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium',
                   categoryId === c.id
-                    ? 'bg-[var(--accent)] text-[#06281c]'
+                    ? 'bg-[var(--accent)] text-[var(--on-accent)]'
                     : 'bg-[var(--fill)]',
                 )}
               >
@@ -334,7 +334,7 @@ export function ExpenseForm({
           type="button"
           disabled={!canSave}
           onClick={() => void save()}
-          className="pressable mb-3 flex h-12 w-full items-center justify-center rounded-[14px] bg-[var(--accent)] text-[17px] font-semibold text-[#06281c] disabled:opacity-40"
+          className="pressable mb-3 flex h-12 w-full items-center justify-center rounded-[14px] bg-[var(--accent)] text-[17px] font-semibold text-[var(--on-accent)] disabled:opacity-40"
         >
           {saving ? 'Saving…' : expenseId ? 'Save changes' : 'Save Expense'}
         </button>

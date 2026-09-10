@@ -18,10 +18,10 @@ export function Chip({
       className={cn(
         'min-h-9 shrink-0 rounded-full px-3.5 text-[13px] font-medium',
         active
-          ? 'bg-[var(--accent)] text-[#06281c]'
+          ? 'bg-[var(--accent)] text-[var(--on-accent)]'
           : 'bg-[var(--fill)] text-[var(--label)]',
       )}
-      style={active && color ? { background: color, color: '#06281c' } : undefined}
+      style={active && color ? { background: color, color: '#fff' } : undefined}
     >
       {label}
     </button>

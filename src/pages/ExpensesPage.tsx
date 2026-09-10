@@ -107,7 +107,7 @@ export function ExpensesPage() {
     <div className="px-4">
       <div className="px-1 pt-1">
         <div className="text-[13px] font-medium text-[var(--secondary)]">Total Spent</div>
-        <div className="tabular text-[40px] font-semibold leading-tight tracking-tight">{formatINR(total)}</div>
+        <div className="tabular text-[32px] font-semibold leading-tight tracking-tight">{formatINR(total)}</div>
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-2">

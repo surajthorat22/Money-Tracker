@@ -26,8 +26,8 @@ export default defineConfig(({ command }) => {
           short_name: 'Plot Tracker',
           description:
             'iPhone-first tracker for plot expenses, machines, vendors, and income.',
-          theme_color: '#0c1612',
-          background_color: '#0c1612',
+          theme_color: '#007aff',
+          background_color: '#000000',
           display: 'standalone',
           orientation: 'portrait',
           start_url: './',

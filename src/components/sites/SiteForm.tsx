@@ -96,7 +96,7 @@ export function SiteForm({ siteId, onSaved }: { siteId?: string; onSaved?: () =>
       <button
         type="button"
         onClick={() => void save()}
-        className="pressable flex h-12 w-full items-center justify-center rounded-[14px] bg-[var(--accent)] text-[17px] font-semibold text-[#06281c]"
+        className="pressable flex h-12 w-full items-center justify-center rounded-[14px] bg-[var(--accent)] text-[17px] font-semibold text-[var(--on-accent)]"
       >
         {siteId ? 'Save Site' : 'Create Site'}
       </button>

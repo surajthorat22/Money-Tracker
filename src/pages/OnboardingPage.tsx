@@ -24,7 +24,7 @@ export function OnboardingPage() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col px-6" style={{ paddingTop: 'max(48px, env(safe-area-inset-top))', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+    <div className="flex h-full min-h-0 flex-col overflow-y-auto px-6" style={{ paddingTop: 'max(24px, env(safe-area-inset-top, 0px))', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       <div className="text-[13px] font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">Plot Tracker</div>
       {step === 0 && (
         <div className="mt-8">
@@ -32,7 +32,7 @@ export function OnboardingPage() {
           <p className="mt-3 text-[16px] leading-6 text-[var(--secondary)]">
             A personal notebook for construction-site money. Fast enough to log a payment while you’re still on the plot.
           </p>
-          <button type="button" className="pressable mt-10 h-12 w-full rounded-[14px] bg-[var(--accent)] text-[17px] font-semibold text-[#06281c]" onClick={() => setStep(1)}>
+          <button type="button" className="pressable mt-10 h-12 w-full rounded-[14px] bg-[var(--accent)] text-[17px] font-semibold text-[var(--on-accent)]" onClick={() => setStep(1)}>
             Continue
           </button>
         </div>
@@ -47,7 +47,7 @@ export function OnboardingPage() {
             className="mt-6 h-12 w-full rounded-[14px] bg-[var(--fill)] px-4 text-[17px]"
             placeholder="Vista Residency"
           />
-          <button type="button" className="pressable mt-8 h-12 w-full rounded-[14px] bg-[var(--accent)] text-[17px] font-semibold text-[#06281c]" onClick={() => setStep(2)}>
+          <button type="button" className="pressable mt-8 h-12 w-full rounded-[14px] bg-[var(--accent)] text-[17px] font-semibold text-[var(--on-accent)]" onClick={() => setStep(2)}>
             Continue
           </button>
         </div>
@@ -57,7 +57,7 @@ export function OnboardingPage() {
           <h1 className="text-[34px] font-semibold leading-tight">Currency</h1>
           <p className="mt-2 text-[15px] text-[var(--secondary)]">Amounts use Indian numbering: ₹1,25,000.</p>
           <div className="mt-6 rounded-[16px] bg-[var(--card-solid)] px-4 py-4 text-[17px] font-semibold">₹ Indian Rupee</div>
-          <button type="button" className="pressable mt-8 h-12 w-full rounded-[14px] bg-[var(--accent)] text-[17px] font-semibold text-[#06281c]" onClick={() => setStep(3)}>
+          <button type="button" className="pressable mt-8 h-12 w-full rounded-[14px] bg-[var(--accent)] text-[17px] font-semibold text-[var(--on-accent)]" onClick={() => setStep(3)}>
             Continue
           </button>
         </div>
@@ -71,7 +71,7 @@ export function OnboardingPage() {
           <button
             type="button"
             disabled={busy}
-            className="pressable mt-8 h-12 w-full rounded-[14px] bg-[var(--accent)] text-[17px] font-semibold text-[#06281c]"
+            className="pressable mt-8 h-12 w-full rounded-[14px] bg-[var(--accent)] text-[17px] font-semibold text-[var(--on-accent)]"
             onClick={() => void finish(false)}
           >
             Start tracking

@@ -13,8 +13,8 @@ const TABS = [
 export function BottomNav() {
   return (
     <nav
-      className="glass absolute inset-x-0 bottom-0 z-20 border-t border-[var(--hairline)]"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      className="glass z-20 shrink-0 border-t border-[var(--hairline)]"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="grid grid-cols-4">
         {TABS.map((tab) => (

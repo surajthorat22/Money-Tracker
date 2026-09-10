@@ -58,7 +58,7 @@ export function CategoryForm({
           <option key={u} value={u}>{u}</option>
         ))}
       </select>
-      <button type="button" onClick={() => void save()} className="pressable flex h-12 w-full items-center justify-center rounded-[14px] bg-[var(--accent)] text-[17px] font-semibold text-[#06281c]">
+      <button type="button" onClick={() => void save()} className="pressable flex h-12 w-full items-center justify-center rounded-[14px] bg-[var(--accent)] text-[17px] font-semibold text-[var(--on-accent)]">
         {categoryId ? 'Save Category' : 'Add Category'}
       </button>
     </div>

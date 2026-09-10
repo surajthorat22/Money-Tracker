@@ -32,7 +32,7 @@ export function VendorForm({ vendorId, onSaved }: { vendorId?: string; onSaved?:
       <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Vendor name" className="h-12 w-full rounded-[12px] bg-[var(--fill)] px-3 text-[16px]" autoFocus />
       <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone (optional)" className="h-11 w-full rounded-[12px] bg-[var(--fill)] px-3 text-[16px]" />
       <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notes" className="min-h-20 w-full rounded-[12px] bg-[var(--fill)] px-3 py-2 text-[16px]" />
-      <button type="button" onClick={() => void save()} className="pressable flex h-12 w-full items-center justify-center rounded-[14px] bg-[var(--accent)] text-[17px] font-semibold text-[#06281c]">
+      <button type="button" onClick={() => void save()} className="pressable flex h-12 w-full items-center justify-center rounded-[14px] bg-[var(--accent)] text-[17px] font-semibold text-[var(--on-accent)]">
         {vendorId ? 'Save Vendor' : 'Add Vendor'}
       </button>
     </div>

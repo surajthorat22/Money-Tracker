@@ -33,7 +33,7 @@ function applyTheme(theme: AppSettings['theme']) {
     (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
   document.documentElement.classList.toggle('dark', dark)
   document.documentElement.classList.toggle('light', !dark)
-  const color = dark ? '#0c1612' : '#f2f2f7'
+  const color = dark ? '#000000' : '#f4f6fa'
   const meta = document.querySelector('meta[name="theme-color"]')
   if (meta) meta.setAttribute('content', color)
 }

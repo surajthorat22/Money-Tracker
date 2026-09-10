@@ -73,7 +73,7 @@ export function FilterSheet() {
       </section>
       <button
         type="button"
-        className="h-12 w-full rounded-[14px] bg-[var(--accent)] text-[16px] font-semibold text-[#06281c]"
+        className="h-12 w-full rounded-[14px] bg-[var(--accent)] text-[16px] font-semibold text-[var(--on-accent)]"
         onClick={closeSheet}
       >
         Done

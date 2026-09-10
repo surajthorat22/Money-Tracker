@@ -27,7 +27,7 @@ function Root() {
 
   if (err) {
     return (
-      <div className="app-frame flex min-h-dvh flex-col items-center justify-center px-8 text-center">
+      <div className="app-frame flex h-full flex-col items-center justify-center px-8 text-center">
         <h1 className="text-[22px] font-semibold">Storage problem</h1>
         <p className="mt-2 text-[14px] text-[var(--secondary)]">{err}</p>
         <p className="mt-3 text-[13px] text-[var(--tertiary)]">
@@ -35,7 +35,7 @@ function Root() {
         </p>
         <button
           type="button"
-          className="mt-6 h-12 rounded-[14px] bg-[var(--accent)] px-6 font-semibold text-[#06281c]"
+          className="mt-6 h-12 rounded-[14px] bg-[var(--accent)] px-6 font-semibold text-[var(--on-accent)]"
           onClick={() => window.location.reload()}
         >
           Reload

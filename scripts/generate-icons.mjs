@@ -74,19 +74,19 @@ function fillRoundRect(data, size, x, y, w, h, rad, r, g, b) {
 function drawIcon(size) {
   const data = Buffer.alloc(size * size * 4, 0)
   const s = size / 512
-  fillRoundRect(data, size, 0, 0, size, size, Math.round(96 * s), 12, 22, 18)
-  fillRoundRect(data, size, Math.round(72 * s), Math.round(220 * s), Math.round(150 * s), Math.round(170 * s), Math.round(18 * s), 46, 214, 148)
+  fillRoundRect(data, size, 0, 0, size, size, Math.round(96 * s), 0, 0, 0)
+  fillRoundRect(data, size, Math.round(72 * s), Math.round(220 * s), Math.round(150 * s), Math.round(170 * s), Math.round(18 * s), 0, 122, 255)
   const minY = Math.round(120 * s)
   const maxY = Math.round(230 * s)
   for (let y = minY; y <= maxY; y++) {
     const t = (y - minY) / (maxY - minY)
     const half = Math.round((75 * s) * t)
     const cx = Math.round(147 * s)
-    for (let x = cx - half; x <= cx + half; x++) setPixel(data, size, x, y, 46, 214, 148)
+    for (let x = cx - half; x <= cx + half; x++) setPixel(data, size, x, y, 0, 122, 255)
   }
-  fillRect(data, size, Math.round(280 * s), Math.round(270 * s), Math.round(48 * s), Math.round(120 * s), 90, 224, 176)
-  fillRect(data, size, Math.round(348 * s), Math.round(210 * s), Math.round(48 * s), Math.round(180 * s), 62, 224, 160)
-  fillRect(data, size, Math.round(416 * s), Math.round(160 * s), Math.round(48 * s), Math.round(230 * s), 180, 255, 214)
+  fillRect(data, size, Math.round(280 * s), Math.round(270 * s), Math.round(48 * s), Math.round(120 * s), 100, 181, 255)
+  fillRect(data, size, Math.round(348 * s), Math.round(210 * s), Math.round(48 * s), Math.round(180 * s), 10, 132, 255)
+  fillRect(data, size, Math.round(416 * s), Math.round(160 * s), Math.round(48 * s), Math.round(230 * s), 159, 208, 255)
   return data
 }
 
