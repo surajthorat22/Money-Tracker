@@ -29,7 +29,7 @@ export function SettingsPage() {
         />
       </Group>
       <Group>
-        <Row label="About" subtitle="Plot Tracker · local-first · iPhone PWA" />
+        <Row label="About" subtitle="Plot Tracker" />
       </Group>
     </div>
   )
