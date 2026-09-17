@@ -94,6 +94,7 @@ export function OtherPage() {
                     <div className="text-[12px] text-[var(--secondary)]">
                       {formatDateShort(e.date)}
                       {vendor ? ` · ${vendor.name}` : ''}
+                      {e.note ? ` · ${e.note}` : ''}
                     </div>
                   </div>
                 </button>

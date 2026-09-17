@@ -24,7 +24,7 @@ export function OnboardingPage() {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-y-auto px-6" style={{ paddingTop: 'max(24px, env(safe-area-inset-top, 0px))', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+    <div className="flex h-full min-h-0 flex-col overflow-y-auto px-6" style={{ paddingTop: 'max(24px, var(--safe-top))', paddingBottom: 'max(16px, var(--safe-bottom))' }}>
       <div className="text-[13px] font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">Plot Tracker</div>
       {step === 0 && (
         <div className="mt-8">

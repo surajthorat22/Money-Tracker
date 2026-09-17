@@ -1,6 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { ChevronRight, Filter, PieChart, Plus } from 'lucide-react'
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Card, Stat } from '@/components/ui/Card'
 import { Chip } from '@/components/ui/Chip'
@@ -11,6 +11,8 @@ import { useApp } from '@/context/AppContext'
 import { useUI } from '@/context/UIContext'
 import { db } from '@/db/db'
 import { expenseRepo } from '@/db/repositories'
+import { downloadWorkbook, expensesToWorkbook, importExpenseRows, parseExpenseSheet } from '@/db/excel'
+import { format } from 'date-fns'
 import {
   byCategory,
   cashFlow,
@@ -26,9 +28,10 @@ import { haptic } from '@/utils/haptics'
 import type { Expense } from '@/types'
 
 export function ExpensesPage() {
-  const { currentSite, currentSiteId, categories, vendors, machines } = useApp()
-  const { openSheet, filters, setFilters, undoExpense } = useUI()
+  const { currentSite, currentSiteId, categories, vendors, machines, sites } = useApp()
+  const { openSheet, filters, setFilters, undoExpense, showToast } = useUI()
   const nav = useNavigate()
+  const importRef = useRef<HTMLInputElement>(null)
   const expensesAll = useLiveQuery(() => db.expenses.toArray(), []) ?? []
   const incomesAll = useLiveQuery(() => db.incomes.toArray(), []) ?? []
   const logsAll = useLiveQuery(() => db.machineLogs.toArray(), []) ?? []
@@ -203,7 +206,33 @@ export function ExpensesPage() {
 
       <div className="mt-5 flex items-center justify-between">
         <h2 className="text-[15px] font-semibold">Recent</h2>
-        <div className="flex items-center gap-1">
+        <div className="flex min-w-0 flex-1 items-center justify-end gap-1 overflow-x-auto no-scrollbar">
+          <button
+            type="button"
+            className="h-9 rounded-full bg-[var(--fill)] px-3 text-[12px] font-semibold"
+            onClick={() => importRef.current?.click()}
+          >
+            Import
+          </button>
+          <button
+            type="button"
+            className="h-9 rounded-full bg-[var(--fill)] px-3 text-[12px] font-semibold"
+            onClick={() => {
+              void (async () => {
+                await downloadWorkbook(
+                  `expenses-${format(new Date(), 'yyyy-MM-dd')}.xlsx`,
+                  await expensesToWorkbook(expenses, {
+                    categories: Object.fromEntries(categories.map((c) => [c.id, c.name])),
+                    vendors: Object.fromEntries(vendors.map((v) => [v.id, v.name])),
+                    sites: Object.fromEntries(sites.map((s) => [s.id, s.name])),
+                  }),
+                )
+                showToast({ message: 'Expenses exported to Excel' })
+              })()
+            }}
+          >
+            Excel
+          </button>
           {(['today', 'thisMonth', 'all'] as const).map((p) => (
             <Chip key={p} label={p === 'today' ? 'Today' : p === 'thisMonth' ? 'Month' : 'All'} active={filters.preset === p} onClick={() => setFilters({ preset: p })} />
           ))}
@@ -283,6 +312,7 @@ export function ExpensesPage() {
                           <span className="truncate">
                             {[vendor?.name, e.paymentMethod].filter(Boolean).join(' · ') || '—'}
                             {e.quantity != null ? ` · ${formatQty(e.quantity, e.unit)}` : ''}
+                            {e.note ? ` · ${e.note}` : ''}
                           </span>
                           <ChevronRight size={14} />
                         </div>
@@ -295,6 +325,36 @@ export function ExpensesPage() {
           ))}
         </div>
       )}
+      <input
+        ref={importRef}
+        type="file"
+        accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          e.target.value = ''
+          if (!file) return
+          void (async () => {
+            try {
+              const rows = await parseExpenseSheet(await file.arrayBuffer())
+              const result = await importExpenseRows(rows, {
+                fallbackSiteId: currentSiteId,
+                categories,
+                vendors,
+                sites,
+              })
+              showToast({
+                message:
+                  result.skipped > 0
+                    ? `Imported ${result.imported}, skipped ${result.skipped}`
+                    : `Imported ${result.imported} expenses`,
+              })
+            } catch (err) {
+              showToast({ message: err instanceof Error ? err.message : 'Import failed' })
+            }
+          })()
+        }}
+      />
     </div>
   )
 }

@@ -1,21 +1,33 @@
+import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate } from 'react-router-dom'
 import { Group, Row } from '@/components/ui/Row'
 import { useApp } from '@/context/AppContext'
 import { useUI } from '@/context/UIContext'
+import {
+  canPickBackupFolder,
+  chooseBackupFolder,
+  downloadLatestSnapshot,
+  downloadSnapshot,
+  listSnapshots,
+  runDailyBackup,
+} from '@/db/autoBackup'
 import { exportBackup, importBackup, validateBackup } from '@/db/backup'
 import { expensesCSV, incomesCSV, logsCSV, downloadJSON, downloadText } from '@/db/csv'
 import { db } from '@/db/db'
+import { downloadExpenseTemplate, downloadWorkbook, expensesToWorkbook, importExpenseRows, parseExpenseSheet } from '@/db/excel'
 import { clearDemoData, loadDemoData } from '@/db/seed'
 import { format } from 'date-fns'
 import { Back } from '@/pages/SitesSettingsPage'
 import { useRef } from 'react'
 
 export function DataSettingsPage() {
-  const { sites, categories, vendors, machines, settings } = useApp()
+  const { sites, categories, vendors, machines, settings, currentSiteId, updateSettings } = useApp()
   const { showToast, openSheet } = useUI()
   const nav = useNavigate()
   const fileRef = useRef<HTMLInputElement>(null)
+  const excelRef = useRef<HTMLInputElement>(null)
   const modeRef = useRef<'replace' | 'merge'>('merge')
+  const snapshots = useLiveQuery(() => listSnapshots(), []) ?? []
 
   async function names() {
     return {
@@ -47,13 +59,95 @@ export function DataSettingsPage() {
     }
   }
 
+  async function handleExcel(file: File) {
+    try {
+      const rows = await parseExpenseSheet(await file.arrayBuffer())
+      const result = await importExpenseRows(rows, {
+        fallbackSiteId: currentSiteId,
+        categories,
+        vendors,
+        sites,
+      })
+      showToast({
+        message:
+          result.skipped > 0
+            ? `Imported ${result.imported}, skipped ${result.skipped}`
+            : `Imported ${result.imported} expenses`,
+      })
+    } catch (err) {
+      showToast({ message: err instanceof Error ? err.message : 'Excel import failed' })
+    }
+  }
+
   return (
     <div className="px-4 pb-10">
       <Back onClick={() => nav('/settings')} label="Settings" />
       <h1 className="mb-1 text-[28px] font-semibold">Data</h1>
       <p className="mb-4 text-[13px] text-[var(--secondary)]">
-        Everything lives on this iPhone. Export backups regularly.
+        Data stays on this iPhone. A daily backup is saved automatically so you can recover it later.
       </p>
+      <Group>
+        <Row
+          label="Daily auto backup"
+          subtitle={
+            settings?.lastAutoBackupDay
+              ? `Last saved ${settings.lastAutoBackupDay}`
+              : 'Saves a snapshot every day you open the app'
+          }
+          trailing={
+            <input
+              type="checkbox"
+              checked={settings?.autoBackupEnabled !== false}
+              onChange={(e) => void updateSettings({ autoBackupEnabled: e.target.checked })}
+            />
+          }
+        />
+        <Row
+          label="Save latest backup to Files"
+          subtitle="JSON copy you can keep in iCloud Drive"
+          onClick={() =>
+            void downloadLatestSnapshot()
+              .then(() => showToast({ message: 'Backup downloaded' }))
+              .catch((err: unknown) => showToast({ message: err instanceof Error ? err.message : 'Backup failed' }))
+          }
+        />
+        <Row
+          label="Back up now"
+          subtitle="Create today’s snapshot immediately"
+          onClick={() =>
+            void runDailyBackup(true).then(() => showToast({ message: 'Backup saved on this iPhone' }))
+          }
+        />
+        {canPickBackupFolder() && (
+          <Row
+            label="Choose backup folder"
+            subtitle="Desktop browsers can write a file every day"
+            onClick={() =>
+              void chooseBackupFolder()
+                .then((ok) => showToast({ message: ok ? 'Backup folder saved' : 'Folder picker not available' }))
+                .catch(() => showToast({ message: 'Folder not selected' }))
+            }
+          />
+        )}
+      </Group>
+      {snapshots.length > 0 && (
+        <>
+          <div className="mt-5 mb-2 text-[12px] font-semibold uppercase text-[var(--tertiary)]">
+            On-device snapshots
+          </div>
+          <Group>
+            {snapshots.slice(0, 7).map((s) => (
+              <Row
+                key={s.id}
+                label={s.day}
+                subtitle={`${Math.max(1, Math.round(s.bytes / 1024))} KB`}
+                onClick={() => void downloadSnapshot(s.id).then(() => showToast({ message: `Saved ${s.day}` }))}
+              />
+            ))}
+          </Group>
+        </>
+      )}
+      <div className="mt-5 mb-2 text-[12px] font-semibold uppercase text-[var(--tertiary)]">Manual backup</div>
       <Group>
         <Row label="Export backup" subtitle="JSON of all data" onClick={() => void doExport()} />
         <Row
@@ -80,6 +174,26 @@ export function DataSettingsPage() {
             })
           }}
         />
+      </Group>
+      <div className="mt-5 mb-2 text-[12px] font-semibold uppercase text-[var(--tertiary)]">Excel</div>
+      <Group>
+        <Row
+          label="Export expenses to Excel"
+          subtitle=".xlsx for Numbers, Excel, and Sheets"
+          onClick={async () => {
+            const n = await names()
+            await downloadWorkbook(
+              `expenses-${format(new Date(), 'yyyy-MM-dd')}.xlsx`,
+              await expensesToWorkbook(await db.expenses.toArray(), n),
+            )
+          }}
+        />
+        <Row
+          label="Import expenses from Excel"
+          subtitle="xlsx or csv — Date, Amount, Category, Note"
+          onClick={() => excelRef.current?.click()}
+        />
+        <Row label="Download import template" onClick={() => downloadExpenseTemplate()} />
       </Group>
       <div className="mt-5 mb-2 text-[12px] font-semibold uppercase text-[var(--tertiary)]">CSV</div>
       <Group>
@@ -128,7 +242,21 @@ export function DataSettingsPage() {
           if (file) void handleFile(file, modeRef.current)
         }}
       />
-      <p className="mt-6 text-center text-[12px] text-[var(--tertiary)]">No analytics. No cloud. Data never leaves the device unless you export it.</p>
+      <input
+        ref={excelRef}
+        type="file"
+        accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          e.target.value = ''
+          if (file) void handleExcel(file)
+        }}
+      />
+      <p className="mt-6 text-center text-[12px] text-[var(--tertiary)]">
+        Automatic backups live on this device (and in a folder you pick, if the browser allows it). Use Save to Files
+        for iCloud copies.
+      </p>
     </div>
   )
 }

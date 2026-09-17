@@ -13,8 +13,8 @@ export function QuickExpensePage() {
   const nav = useNavigate()
 
   return (
-    <div className="relative flex h-full min-h-0 flex-col overflow-hidden" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
-      <header className="flex items-center justify-between px-4 py-2">
+    <div className="relative flex h-full min-h-0 flex-col overflow-hidden" style={{ paddingTop: 'var(--safe-top)' }}>
+      <header className="flex shrink-0 items-center justify-between px-4 py-2">
         <button
           type="button"
           className="flex items-center gap-1 text-[15px] font-semibold"
@@ -30,7 +30,7 @@ export function QuickExpensePage() {
           Done
         </button>
       </header>
-      <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <ExpenseForm
           variant="page"
           onSaved={() => {

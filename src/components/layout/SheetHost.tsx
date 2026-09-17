@@ -55,7 +55,9 @@ export function SheetHost() {
       {top && (
         <>
           <SheetHeader title={titleFor(top)} onClose={top.name === 'confirm' ? undefined : closeSheet} />
-          <SheetBody sheet={top} />
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <SheetBody sheet={top} />
+          </div>
         </>
       )}
     </Sheet>

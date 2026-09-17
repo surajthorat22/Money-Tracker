@@ -23,7 +23,7 @@ export function Header() {
   return (
     <header
       className="z-20 flex shrink-0 items-center gap-2 px-4 pb-2"
-      style={{ paddingTop: 'max(8px, env(safe-area-inset-top, 0px))' }}
+      style={{ paddingTop: 'max(8px, var(--safe-top))' }}
     >
       <div className="min-w-0 flex-1">
         {showSite && !title ? (

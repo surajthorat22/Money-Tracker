@@ -5,6 +5,7 @@ import App from './App.tsx'
 import { AppProvider } from '@/context/AppContext.tsx'
 import { UIProvider } from '@/context/UIContext.tsx'
 import { initDb } from '@/db/db.ts'
+import { installViewport } from '@/utils/viewport.ts'
 import { registerSW } from 'virtual:pwa-register'
 import './index.css'
 
@@ -28,35 +29,14 @@ function Root() {
   const [booted, setBooted] = useState(false)
 
   useEffect(() => {
-    const setH = () => {
-      const vv = window.visualViewport
-      const h = Math.max(
-        window.innerHeight,
-        vv ? Math.round(vv.height + (vv.offsetTop || 0)) : 0,
-      )
-      const html = document.documentElement
-      html.style.setProperty('--app-height', `${h}px`)
-      html.style.height = `${h}px`
-      document.body.style.height = `${h}px`
-      const root = document.getElementById('root')
-      if (root) {
-        root.style.height = `${h}px`
-        root.style.minHeight = `${h}px`
-      }
-    }
-    setH()
-    window.visualViewport?.addEventListener('resize', setH)
-    window.addEventListener('resize', setH)
+    const stopViewport = installViewport()
     void initDb()
       .then(() => setBooted(true))
       .catch((e: unknown) => {
         setErr(e instanceof Error ? e.message : 'Could not open local database')
         setBooted(true)
       })
-    return () => {
-      window.visualViewport?.removeEventListener('resize', setH)
-      window.removeEventListener('resize', setH)
-    }
+    return () => stopViewport()
   }, [])
 
   if (!booted) return <Splash />

@@ -123,6 +123,7 @@ export function IncomePage() {
                 <div className="font-medium">{i.source}</div>
                 <div className="text-[12px] text-[var(--secondary)]">
                   {formatDateShort(i.date)} · {i.siteId ? currentSite.name : 'General'} · {i.paymentMethod ?? '—'}
+                  {i.note ? ` · ${i.note}` : ''}
                 </div>
               </div>
               <div className="tabular font-semibold text-[var(--income)]">{formatINR(i.amount)}</div>

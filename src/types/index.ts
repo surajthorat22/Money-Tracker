@@ -147,6 +147,21 @@ export type AppSettings = {
   lastOtherCategoryId?: string
   lastMachineId?: string
   demoDataLoaded?: boolean
+  autoBackupEnabled?: boolean
+  lastAutoBackupDay?: string
+}
+
+export type BackupSnapshot = {
+  id: string
+  day: string
+  createdAt: string
+  bytes: number
+  json: string
+}
+
+export type KvEntry = {
+  id: string
+  value: unknown
 }
 
 export type BackupFile = {

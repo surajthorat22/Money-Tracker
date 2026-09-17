@@ -10,7 +10,7 @@ export function FAB({ onClick, label = 'Add' }: { onClick: () => void; label?: s
         haptic('light')
         onClick()
       }}
-      className="pressable fixed right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full text-[var(--on-accent)] shadow-lg md:right-[max(1rem,calc(50vw-215px+1rem))]"
+      className="pressable absolute right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full text-[var(--on-accent)] shadow-lg"
       style={{
         bottom: 'calc(var(--nav-h) + 12px)',
         background: 'var(--accent)',

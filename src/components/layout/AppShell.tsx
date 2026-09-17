@@ -27,7 +27,7 @@ export function AppShell() {
       <Header />
       <main
         className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
-        style={{ paddingBottom: hideFab ? 'calc(var(--nav-h) + 16px)' : 'calc(var(--nav-h) + 76px)' }}
+        style={{ paddingBottom: hideFab ? 16 : 76 }}
       >
         <Outlet />
       </main>

@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useMemo, useState } from 'react'
 import { Chip } from '@/components/ui/Chip'
+import { NoteField } from '@/components/ui/NoteField'
 import { NumberPad } from '@/components/ui/NumberPad'
 import { NamedIcon } from '@/components/ui/NamedIcon'
 import { QUICK_CATEGORY_IDS } from '@/constants/defaults'
@@ -8,7 +9,7 @@ import { useApp } from '@/context/AppContext'
 import { db } from '@/db/db'
 import { categoryRepo, expenseRepo, settingsRepo, vendorRepo } from '@/db/repositories'
 import { PAYMENT_METHODS, UNITS, type Category, type Expense, type PaymentMethod } from '@/types'
-import { frequentCategoryIds, recentCategoryIds, recentVendorIds } from '@/utils/calc'
+import { frequentCategoryIds, recentVendorIds } from '@/utils/calc'
 import { todayISO } from '@/utils/dates'
 import { haptic } from '@/utils/haptics'
 import { cn } from '@/utils/cn'
@@ -64,7 +65,6 @@ export function ExpenseForm({
 
   const siteExpenses = allExpenses.filter((e) => (other ? !e.siteId : e.siteId === currentSiteId))
   const freq = frequentCategoryIds(siteExpenses, 8)
-  const recentCats = recentCategoryIds(siteExpenses, 5)
   const recentVendors = recentVendorIds(siteExpenses, 5)
 
   const quick = useMemo(() => {
@@ -131,26 +131,9 @@ export function ExpenseForm({
   }
 
   return (
-    <div className={cn('flex flex-col', variant === 'page' && 'min-h-full')}>
-      <div className={cn('no-scrollbar flex-1 overflow-y-auto pb-3', variant === 'sheet' && 'max-h-[48vh]')}>
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto pb-3">
         <NumberPad value={amount} onChange={setAmount} />
-
-        {recentCats.length > 0 && (
-          <section className="mt-3 px-4">
-            <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--tertiary)]">
-              Recent
-            </div>
-            <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
-              {recentCats.map((id) => {
-                const c = pool.find((x) => x.id === id)
-                if (!c) return null
-                return (
-                  <Chip key={id} label={c.name} active={categoryId === id} onClick={() => setCategoryId(id)} />
-                )
-              })}
-            </div>
-          </section>
-        )}
 
         <section className="mt-3 px-4">
           <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--tertiary)]">
@@ -212,6 +195,12 @@ export function ExpenseForm({
             </div>
           </details>
         </section>
+
+        <NoteField
+          value={note}
+          onChange={setNote}
+          placeholder={other ? 'Add a note for this other expense' : 'Add a note for this expense'}
+        />
 
         {!other && (
           <section className="mt-3 px-4">
@@ -287,7 +276,7 @@ export function ExpenseForm({
           className="mt-3 px-4 text-[13px] text-[var(--accent)]"
           onClick={() => setMore((v) => !v)}
         >
-          {more ? 'Less' : 'Date, quantity, note'}
+          {more ? 'Less' : 'Date and quantity'}
         </button>
         {more && (
           <section className="mt-2 space-y-2 px-4">
@@ -318,23 +307,20 @@ export function ExpenseForm({
                 ))}
               </select>
             </div>
-            <input
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Note"
-              className="h-11 w-full rounded-[12px] bg-[var(--fill)] px-3 text-[16px]"
-            />
           </section>
         )}
       </div>
 
-      <div className="px-4 pt-2">
+      <div
+        className={cn('shrink-0 border-t border-[var(--hairline)] bg-[var(--sheet)] px-4 pt-3', variant === 'page' && 'bg-[var(--bg)]')}
+        style={{ paddingBottom: variant === 'page' ? 'max(12px, var(--safe-bottom))' : '12px' }}
+      >
         {error && <div className="mb-2 text-center text-[12px] text-[var(--expense)]">{error}</div>}
         <button
           type="button"
           disabled={!canSave}
           onClick={() => void save()}
-          className="pressable mb-3 flex h-12 w-full items-center justify-center rounded-[14px] bg-[var(--accent)] text-[17px] font-semibold text-[var(--on-accent)] disabled:opacity-40"
+          className="pressable flex h-12 w-full items-center justify-center rounded-[14px] bg-[var(--accent)] text-[17px] font-semibold text-[var(--on-accent)] disabled:opacity-40"
         >
           {saving ? 'Saving…' : expenseId ? 'Save changes' : 'Save Expense'}
         </button>

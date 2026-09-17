@@ -2,9 +2,11 @@ import Dexie, { type Table } from 'dexie'
 import { stampDefaults } from '@/constants/defaults'
 import type {
   AppSettings,
+  BackupSnapshot,
   Category,
   Expense,
   Income,
+  KvEntry,
   Machine,
   MachineLog,
   Site,
@@ -20,6 +22,8 @@ export class PlotTrackerDB extends Dexie {
   machineLogs!: Table<MachineLog, string>
   categories!: Table<Category, string>
   settings!: Table<AppSettings, string>
+  backupSnapshots!: Table<BackupSnapshot, string>
+  kv!: Table<KvEntry, string>
 
   constructor() {
     super('plot-tracker')
@@ -33,6 +37,18 @@ export class PlotTrackerDB extends Dexie {
       categories: 'id, type, name',
       settings: 'id',
     })
+    this.version(2).stores({
+      sites: 'id, name, updatedAt',
+      expenses: 'id, siteId, categoryId, vendorId, date, amount, updatedAt, [siteId+date]',
+      incomes: 'id, siteId, date, source, updatedAt',
+      vendors: 'id, name, updatedAt',
+      machines: 'id, name',
+      machineLogs: 'id, siteId, machineId, date, [siteId+machineId]',
+      categories: 'id, type, name',
+      settings: 'id',
+      backupSnapshots: 'id, day, createdAt',
+      kv: 'id',
+    })
   }
 }
 
@@ -44,6 +60,7 @@ const defaultSettings = (): AppSettings => ({
   theme: 'system',
   haptics: true,
   onboardingComplete: false,
+  autoBackupEnabled: true,
 })
 
 export async function initDb(): Promise<void> {

@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
 import { Chip } from '@/components/ui/Chip'
+import { NoteField } from '@/components/ui/NoteField'
 import { NumberPad } from '@/components/ui/NumberPad'
 import { useApp } from '@/context/AppContext'
 import { db } from '@/db/db'
@@ -63,47 +64,44 @@ export function IncomeForm({
   }
 
   return (
-    <div className="pb-6">
-      <NumberPad value={amount} onChange={setAmount} />
-      <section className="mt-3 px-4">
-        <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--tertiary)]">
-          Source
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto">
+        <NumberPad value={amount} onChange={setAmount} />
+        <section className="mt-3 px-4">
+          <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--tertiary)]">
+            Source
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {INCOME_SOURCES.map((s) => (
+              <Chip key={s} label={s} active={source === s} onClick={() => setSource(s)} />
+            ))}
+          </div>
+        </section>
+        <NoteField value={note} onChange={setNote} placeholder="Add a note for this income" />
+        <section className="mt-3 px-4">
+          <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--tertiary)]">
+            Payment
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {PAYMENT_METHODS.map((m) => (
+              <Chip key={m} label={m} active={payment === m} onClick={() => setPayment(m)} />
+            ))}
+          </div>
+        </section>
+        <label className="mt-3 flex items-center justify-between px-4 text-[15px]">
+          Link to current site
+          <input type="checkbox" checked={linkSite} onChange={(e) => setLinkSite(e.target.checked)} />
+        </label>
+        <div className="mt-3 space-y-2 px-4 pb-3">
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="h-11 w-full rounded-[12px] bg-[var(--fill)] px-3 text-[16px]"
+          />
         </div>
-        <div className="flex flex-wrap gap-1.5">
-          {INCOME_SOURCES.map((s) => (
-            <Chip key={s} label={s} active={source === s} onClick={() => setSource(s)} />
-          ))}
-        </div>
-      </section>
-      <section className="mt-3 px-4">
-        <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--tertiary)]">
-          Payment
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          {PAYMENT_METHODS.map((m) => (
-            <Chip key={m} label={m} active={payment === m} onClick={() => setPayment(m)} />
-          ))}
-        </div>
-      </section>
-      <label className="mt-3 flex items-center justify-between px-4 text-[15px]">
-        Link to current site
-        <input type="checkbox" checked={linkSite} onChange={(e) => setLinkSite(e.target.checked)} />
-      </label>
-      <div className="mt-3 space-y-2 px-4">
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className="h-11 w-full rounded-[12px] bg-[var(--fill)] px-3 text-[16px]"
-        />
-        <input
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder="Note"
-          className="h-11 w-full rounded-[12px] bg-[var(--fill)] px-3 text-[16px]"
-        />
       </div>
-      <div className="px-4 pt-3 pb-3">
+      <div className="shrink-0 border-t border-[var(--hairline)] bg-[var(--sheet)] px-4 pt-3 pb-3">
         <button
           type="button"
           disabled={parsed <= 0 || saving}

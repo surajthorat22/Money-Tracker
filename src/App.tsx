@@ -1,7 +1,9 @@
-import { lazy, Suspense, type ReactNode } from 'react'
+import { lazy, Suspense, useEffect, type ReactNode } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AppShell } from '@/components/layout/AppShell'
 import { useApp } from '@/context/AppContext'
+import { useUI } from '@/context/UIContext'
+import { downloadLatestSnapshot, runDailyBackup } from '@/db/autoBackup'
 import { AppearanceSettingsPage } from '@/pages/AppearanceSettingsPage'
 import { CategoriesSettingsPage } from '@/pages/CategoriesSettingsPage'
 import { CategoryDetailPage } from '@/pages/CategoryDetailPage'
@@ -27,6 +29,25 @@ function Lazy({ children }: { children: ReactNode }) {
   return <Suspense fallback={<div className="px-4 py-10 text-center text-[var(--secondary)]">Loading…</div>}>{children}</Suspense>
 }
 
+function DailyBackup() {
+  const { ready } = useApp()
+  const { showToast } = useUI()
+
+  useEffect(() => {
+    if (!ready) return
+    void runDailyBackup().then((result) => {
+      if (!result.created) return
+      showToast({
+        message: 'Daily backup saved on this iPhone',
+        actionLabel: 'Save to Files',
+        onAction: () => void downloadLatestSnapshot(),
+      })
+    })
+  }, [ready, showToast])
+
+  return null
+}
+
 export default function App() {
   const { ready, settings } = useApp()
   const loc = useLocation()
@@ -48,6 +69,7 @@ export default function App() {
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col">
+    <DailyBackup />
     <Routes>
       <Route path="/onboarding" element={<OnboardingPage />} />
       <Route path="/quick-expense" element={<QuickExpensePage />} />
