@@ -1,5 +1,6 @@
 import Dexie, { type Table } from 'dexie'
 import { stampDefaults } from '@/constants/defaults'
+import { dedupeCategories } from '@/db/uniqueCategories'
 import type {
   AppSettings,
   BackupSnapshot,
@@ -78,24 +79,17 @@ export async function initDb(): Promise<void> {
 
   const catCount = await db.categories.count()
   if (catCount === 0) {
-    const { categories, machines } = stampDefaults()
+    const { categories } = stampDefaults()
     await db.categories.bulkAdd(categories)
-    const machineCount = await db.machines.count()
-    if (machineCount === 0) await db.machines.bulkAdd(machines)
-  } else {
-    const machineCount = await db.machines.count()
-    if (machineCount === 0) {
-      const { machines } = stampDefaults()
-      await db.machines.bulkAdd(machines)
-    }
   }
+  await dedupeCategories()
 }
 
 export async function resetDatabase(): Promise<void> {
   await db.delete()
   await db.open()
   await db.settings.put(defaultSettings())
-  const { categories, machines } = stampDefaults()
+  const { categories } = stampDefaults()
   await db.categories.bulkAdd(categories)
-  await db.machines.bulkAdd(machines)
+  await dedupeCategories()
 }

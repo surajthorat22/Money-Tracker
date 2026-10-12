@@ -1,7 +1,6 @@
 import { Copy, Pencil, Trash2 } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Button } from '@/components/ui/Button'
-import { useApp } from '@/context/AppContext'
 import { useUI } from '@/context/UIContext'
 import { db } from '@/db/db'
 import { incomeRepo } from '@/db/repositories'
@@ -10,11 +9,9 @@ import { formatINR } from '@/utils/format'
 import { haptic } from '@/utils/haptics'
 
 export function IncomeDetail({ id }: { id: string }) {
-  const { sites } = useApp()
   const { openSheet, closeSheet, undoIncome } = useUI()
   const row = useLiveQuery(() => db.incomes.get(id), [id])
   if (!row) return <div className="px-5 py-8 text-[var(--secondary)]">Not found.</div>
-  const site = sites.find((s) => s.id === row.siteId)
 
   return (
     <div className="px-5 pb-6">
@@ -30,10 +27,6 @@ export function IncomeDetail({ id }: { id: string }) {
             <span>{row.paymentMethod}</span>
           </div>
         )}
-        <div className="flex justify-between">
-          <span className="text-[var(--secondary)]">Site</span>
-          <span>{site?.name ?? 'General'}</span>
-        </div>
         {row.note && <div>{row.note}</div>}
       </div>
       <div className="mt-6 grid grid-cols-3 gap-2">
@@ -44,7 +37,6 @@ export function IncomeDetail({ id }: { id: string }) {
           variant="secondary"
           onClick={async () => {
             await incomeRepo.add({
-              siteId: row.siteId,
               amount: row.amount,
               source: row.source,
               paymentMethod: row.paymentMethod,

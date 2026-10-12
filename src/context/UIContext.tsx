@@ -7,22 +7,17 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import type { Expense, ExpenseFilters, Income, MachineLog } from '@/types'
-import { expenseRepo, incomeRepo, machineLogRepo } from '@/db/repositories'
+import type { Expense, ExpenseFilters, Income } from '@/types'
+import { expenseRepo, incomeRepo } from '@/db/repositories'
 
 export type Sheet =
   | { name: 'expense'; expenseId?: string; other?: boolean }
   | { name: 'expense-detail'; id: string }
   | { name: 'income'; incomeId?: string; general?: boolean }
   | { name: 'income-detail'; id: string }
-  | { name: 'log'; logId?: string; machineId?: string }
-  | { name: 'log-detail'; id: string }
-  | { name: 'site-switcher' }
   | { name: 'site-form'; siteId?: string }
   | { name: 'vendor-form'; vendorId?: string }
   | { name: 'category-form'; categoryId?: string; type?: 'expense' | 'other' }
-  | { name: 'machine-form'; machineId?: string }
-  | { name: 'filters' }
   | { name: 'confirm'; title: string; message: string; destructive?: boolean; onConfirm: () => void }
 
 export type Toast = {
@@ -44,7 +39,6 @@ type UIState = {
   hideToast: () => void
   undoExpense: (row: Expense, message?: string) => Promise<void>
   undoIncome: (row: Income) => Promise<void>
-  undoLog: (row: MachineLog) => Promise<void>
 }
 
 const Ctx = createContext<UIState | null>(null)
@@ -112,20 +106,6 @@ export function UIProvider({ children }: { children: ReactNode }) {
     [showToast],
   )
 
-  const undoLog = useCallback(
-    async (row: MachineLog) => {
-      await machineLogRepo.remove(row.id)
-      showToast({
-        message: 'Hours log deleted',
-        actionLabel: 'Undo',
-        onAction: () => {
-          void machineLogRepo.restore(row)
-        },
-      })
-    },
-    [showToast],
-  )
-
   const value = useMemo(
     () => ({
       sheets,
@@ -139,7 +119,6 @@ export function UIProvider({ children }: { children: ReactNode }) {
       hideToast,
       undoExpense,
       undoIncome,
-      undoLog,
     }),
     [
       sheets,
@@ -153,7 +132,6 @@ export function UIProvider({ children }: { children: ReactNode }) {
       hideToast,
       undoExpense,
       undoIncome,
-      undoLog,
     ],
   )
 

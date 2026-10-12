@@ -1,11 +1,10 @@
 import { db } from '@/db/db'
+import { categoryKey } from '@/db/uniqueCategories'
 import type {
   AppSettings,
   Category,
   Expense,
   Income,
-  Machine,
-  MachineLog,
   PaymentMethod,
   Site,
   Vendor,
@@ -15,6 +14,14 @@ import { nid, nowISO } from '@/utils/id'
 function stamp() {
   const ts = nowISO()
   return { createdAt: ts, updatedAt: ts }
+}
+
+function withoutEmpty<T extends object>(input: T): T {
+  const row = { ...input }
+  for (const key of Object.keys(row) as (keyof T)[]) {
+    if (row[key] === undefined) delete row[key]
+  }
+  return row
 }
 
 export const siteRepo = {
@@ -29,11 +36,14 @@ export const siteRepo = {
     await db.sites.update(id, { ...patch, updatedAt: nowISO() })
   },
   remove: async (id: string) => {
-    await db.transaction('rw', db.sites, db.expenses, db.incomes, db.machineLogs, async () => {
+    await db.transaction('rw', db.sites, db.expenses, db.incomes, async () => {
       await db.sites.delete(id)
-      await db.expenses.where('siteId').equals(id).delete()
-      await db.incomes.where('siteId').equals(id).delete()
-      await db.machineLogs.where('siteId').equals(id).delete()
+      await db.expenses.where('siteId').equals(id).modify((row) => {
+        delete row.siteId
+      })
+      await db.incomes.where('siteId').equals(id).modify((row) => {
+        delete row.siteId
+      })
     })
   },
 }
@@ -43,7 +53,7 @@ export const expenseRepo = {
   forSite: (siteId: string) => db.expenses.where('siteId').equals(siteId).toArray(),
   get: (id: string) => db.expenses.get(id),
   add: async (input: Omit<Expense, 'id' | 'createdAt' | 'updatedAt'> & { id?: string; createdAt?: string; updatedAt?: string }) => {
-    const row: Expense = { ...stamp(), ...input, id: input.id ?? nid() }
+    const row: Expense = withoutEmpty({ ...stamp(), ...input, id: input.id ?? nid() })
     await db.expenses.add(row)
     return row
   },
@@ -63,7 +73,7 @@ export const incomeRepo = {
   forSite: (siteId: string) => db.incomes.where('siteId').equals(siteId).toArray(),
   get: (id: string) => db.incomes.get(id),
   add: async (input: Omit<Income, 'id' | 'createdAt' | 'updatedAt'> & { id?: string; createdAt?: string; updatedAt?: string }) => {
-    const row: Income = { ...stamp(), ...input, id: input.id ?? nid() }
+    const row: Income = withoutEmpty({ ...stamp(), ...input, id: input.id ?? nid() })
     await db.incomes.add(row)
     return row
   },
@@ -99,57 +109,32 @@ export const vendorRepo = {
   },
 }
 
-export const machineRepo = {
-  all: () => db.machines.toArray(),
-  get: (id: string) => db.machines.get(id),
-  add: async (input: Omit<Machine, 'id' | 'createdAt' | 'updatedAt'> & { id?: string }) => {
-    const row: Machine = { id: input.id ?? nid(), ...stamp(), ...input }
-    await db.machines.add(row)
-    return row
-  },
-  update: async (id: string, patch: Partial<Machine>) => {
-    await db.machines.update(id, { ...patch, updatedAt: nowISO() })
-  },
-  remove: async (id: string) => {
-    await db.transaction('rw', db.machines, db.machineLogs, async () => {
-      await db.machines.delete(id)
-      await db.machineLogs.where('machineId').equals(id).delete()
-    })
-  },
-}
-
-export const machineLogRepo = {
-  all: () => db.machineLogs.toArray(),
-  forSite: (siteId: string) => db.machineLogs.where('siteId').equals(siteId).toArray(),
-  forMachine: (siteId: string, machineId: string) =>
-    db.machineLogs.where('[siteId+machineId]').equals([siteId, machineId]).toArray(),
-  get: (id: string) => db.machineLogs.get(id),
-  add: async (input: Omit<MachineLog, 'id' | 'createdAt' | 'updatedAt'> & { id?: string }) => {
-    const row: MachineLog = { id: input.id ?? nid(), ...stamp(), ...input }
-    await db.machineLogs.add(row)
-    return row
-  },
-  update: async (id: string, patch: Partial<MachineLog>) => {
-    await db.machineLogs.update(id, { ...patch, updatedAt: nowISO() })
-  },
-  remove: async (id: string) => {
-    await db.machineLogs.delete(id)
-  },
-  restore: async (row: MachineLog) => {
-    await db.machineLogs.put(row)
-  },
-}
-
 export const categoryRepo = {
   all: () => db.categories.toArray(),
   get: (id: string) => db.categories.get(id),
   add: async (input: Omit<Category, 'id' | 'createdAt' | 'updatedAt'> & { id?: string }) => {
-    const row: Category = { id: input.id ?? nid(), isCustom: true, ...stamp(), ...input }
+    const name = input.name.trim().replace(/\s+/g, ' ')
+    const key = categoryKey(name)
+    const existing = (await db.categories.toArray()).find((c) => categoryKey(c.name) === key)
+    if (existing) return existing
+    const row: Category = { id: input.id ?? nid(), isCustom: true, ...stamp(), ...input, name, type: 'expense' }
     await db.categories.add(row)
     return row
   },
   update: async (id: string, patch: Partial<Category>) => {
-    await db.categories.update(id, { ...patch, updatedAt: nowISO() })
+    const name = patch.name?.trim().replace(/\s+/g, ' ')
+    if (name) {
+      const key = categoryKey(name)
+      const clash = (await db.categories.toArray()).find((c) => c.id !== id && categoryKey(c.name) === key)
+      if (clash) {
+        await db.transaction('rw', db.categories, db.expenses, async () => {
+          await db.expenses.where('categoryId').equals(id).modify({ categoryId: clash.id })
+          await db.categories.delete(id)
+        })
+        return
+      }
+    }
+    await db.categories.update(id, { ...patch, ...(name ? { name } : {}), type: 'expense', updatedAt: nowISO() })
   },
   remove: async (id: string) => {
     await db.categories.delete(id)

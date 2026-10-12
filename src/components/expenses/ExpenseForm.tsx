@@ -1,129 +1,111 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { useMemo, useState } from 'react'
-import { Chip } from '@/components/ui/Chip'
-import { NoteField } from '@/components/ui/NoteField'
-import { NumberPad } from '@/components/ui/NumberPad'
-import { NamedIcon } from '@/components/ui/NamedIcon'
-import { QUICK_CATEGORY_IDS } from '@/constants/defaults'
+import { useState } from 'react'
 import { useApp } from '@/context/AppContext'
 import { db } from '@/db/db'
 import { categoryRepo, expenseRepo, settingsRepo, vendorRepo } from '@/db/repositories'
-import { PAYMENT_METHODS, UNITS, type Category, type Expense, type PaymentMethod } from '@/types'
-import { frequentCategoryIds, recentVendorIds } from '@/utils/calc'
+import { PAYMENT_METHODS, UNITS, type PaymentMethod } from '@/types'
 import { todayISO } from '@/utils/dates'
-import { haptic } from '@/utils/haptics'
-import { cn } from '@/utils/cn'
+
+const field = 'h-11 w-full rounded-lg border border-[var(--separator)] bg-[var(--bg-elevated)] px-3 text-[15px] outline-none'
 
 export function ExpenseForm({
   expenseId,
-  other,
   onSaved,
-  variant = 'sheet',
 }: {
   expenseId?: string
   other?: boolean
   onSaved?: () => void
   variant?: 'sheet' | 'page'
 }) {
-  const { currentSiteId, settings, categories, vendors } = useApp()
+  const { settings, categories, vendors, sites } = useApp()
   const existing = useLiveQuery(() => (expenseId ? db.expenses.get(expenseId) : undefined), [expenseId])
-  const allExpenses = useLiveQuery(() => db.expenses.toArray(), []) ?? []
-
-  const type = other ? 'other' : 'expense'
-  const pool = categories.filter((c) => c.type === type)
 
   const [amount, setAmount] = useState('')
-  const [categoryId, setCategoryId] = useState<string | undefined>()
-  const [vendorId, setVendorId] = useState<string | undefined>()
+  const [siteId, setSiteId] = useState('')
+  const [categoryId, setCategoryId] = useState('')
+  const [vendorId, setVendorId] = useState('')
   const [vendorQuery, setVendorQuery] = useState('')
-  const [payment, setPayment] = useState<PaymentMethod | undefined>(settings?.lastPaymentMethod ?? 'UPI')
+  const [payment, setPayment] = useState<PaymentMethod | ''>(settings?.lastPaymentMethod ?? 'UPI')
   const [note, setNote] = useState('')
   const [date, setDate] = useState(todayISO())
   const [qty, setQty] = useState('')
   const [unit, setUnit] = useState('')
-  const [more, setMore] = useState(false)
   const [hydrated, setHydrated] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
   if (existing && !hydrated) {
     setAmount(String(existing.amount))
+    setSiteId(existing.siteId ?? '')
     setCategoryId(existing.categoryId)
-    setVendorId(existing.vendorId)
-    setPayment(existing.paymentMethod)
+    setVendorId(existing.vendorId ?? '')
+    setVendorQuery(vendors.find((v) => v.id === existing.vendorId)?.name ?? '')
+    setPayment(existing.paymentMethod ?? '')
     setNote(existing.note ?? '')
     setDate(existing.date)
     setQty(existing.quantity != null ? String(existing.quantity) : '')
     setUnit(existing.unit ?? '')
     setHydrated(true)
   } else if (!expenseId && !hydrated && settings) {
-    setCategoryId(other ? settings.lastOtherCategoryId : settings.lastCategoryId)
+    setCategoryId(settings.lastCategoryId ?? '')
     setPayment(settings.lastPaymentMethod ?? 'UPI')
-    setVendorId(other ? undefined : settings.lastVendorId)
+    setVendorId(settings.lastVendorId ?? '')
+    setVendorQuery(vendors.find((v) => v.id === settings.lastVendorId)?.name ?? '')
+    setSiteId(settings.currentSiteId && sites.some((s) => s.id === settings.currentSiteId) ? settings.currentSiteId : '')
     setHydrated(true)
   }
 
-  const siteExpenses = allExpenses.filter((e) => (other ? !e.siteId : e.siteId === currentSiteId))
-  const freq = frequentCategoryIds(siteExpenses, 8)
-  const recentVendors = recentVendorIds(siteExpenses, 5)
-
-  const quick = useMemo(() => {
-    const ids = [...freq, ...QUICK_CATEGORY_IDS]
-    const unique: Category[] = []
-    for (const id of ids) {
-      const c = pool.find((x) => x.id === id)
-      if (c && !unique.some((u) => u.id === c.id)) unique.push(c)
-    }
-    for (const c of pool) {
-      if (unique.length >= 12) break
-      if (!unique.some((u) => u.id === c.id)) unique.push(c)
-    }
-    return unique
-  }, [freq, pool])
-
-  const selected = pool.find((c) => c.id === categoryId)
-  const vendorMatches = vendors.filter((v) =>
-    v.name.toLowerCase().includes(vendorQuery.trim().toLowerCase()),
-  )
-  const parsed = Number(amount || 0)
-  const canSave = parsed > 0 && !!categoryId && (other || !!currentSiteId) && !saving
+  const parsed = Number(amount)
+  const selected = categories.find((c) => c.id === categoryId)
 
   async function save() {
-    if (!canSave) {
-      setError(!categoryId ? 'Choose a category' : !parsed ? 'Enter an amount' : 'Select a site first')
-      haptic('warning')
+    if (!(parsed > 0) || !categoryId) {
+      setError(parsed > 0 ? 'Choose a category' : 'Enter an amount')
       return
     }
     setSaving(true)
     setError('')
     try {
-      let vid = vendorId
+      let vid = vendorId || undefined
       const q = vendorQuery.trim()
-      if (!vid && q) {
-        const created = await vendorRepo.add({ name: q })
-        vid = created.id
+      if (q) {
+        const match = vendors.find((v) => v.name.toLowerCase() === q.toLowerCase())
+        vid = match?.id ?? (await vendorRepo.add({ name: q })).id
+      } else {
+        vid = undefined
       }
-      const payload: Omit<Expense, 'id' | 'createdAt' | 'updatedAt'> = {
-        siteId: other ? undefined : currentSiteId,
-        categoryId: categoryId!,
+      const payload = {
+        siteId: siteId || undefined,
+        categoryId,
         vendorId: vid,
         amount: parsed,
         quantity: qty ? Number(qty) : undefined,
         unit: unit || selected?.defaultUnit,
-        paymentMethod: payment,
+        paymentMethod: payment || undefined,
         date,
         note: note.trim() || undefined,
       }
-      if (expenseId) await expenseRepo.update(expenseId, payload)
-      else await expenseRepo.add(payload)
+      if (expenseId) {
+        const row = await db.expenses.get(expenseId)
+        if (row) {
+          const next = { ...row, ...payload, updatedAt: new Date().toISOString() }
+          if (!payload.siteId) delete next.siteId
+          if (!payload.vendorId) delete next.vendorId
+          if (!payload.quantity) delete next.quantity
+          if (!payload.unit) delete next.unit
+          if (!payload.note) delete next.note
+          if (!payload.paymentMethod) delete next.paymentMethod
+          await db.expenses.put(next)
+        }
+      } else {
+        await expenseRepo.add(payload)
+      }
       await settingsRepo.rememberExpense({
-        siteId: currentSiteId,
+        siteId: siteId || undefined,
         categoryId,
-        paymentMethod: payment,
+        paymentMethod: payment || undefined,
         vendorId: vid,
-        other,
       })
-      haptic('success')
       onSaved?.()
     } finally {
       setSaving(false)
@@ -131,200 +113,132 @@ export function ExpenseForm({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto pb-3">
-        <NumberPad value={amount} onChange={setAmount} />
-
-        <section className="mt-3 px-4">
-          <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--tertiary)]">
-            Category
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {quick.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => {
-                  setCategoryId(c.id)
-                  if (c.defaultUnit) setUnit(c.defaultUnit)
-                  haptic('light')
-                }}
-                className={cn(
-                  'flex min-h-9 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium',
-                  categoryId === c.id
-                    ? 'bg-[var(--accent)] text-[var(--on-accent)]'
-                    : 'bg-[var(--fill)]',
-                )}
-              >
-                <NamedIcon name={c.icon} size={14} />
-                {c.name}
-              </button>
-            ))}
-          </div>
-          <details className="mt-2">
-            <summary className="cursor-pointer text-[13px] text-[var(--accent)]">All categories</summary>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {pool.map((c) => (
-                <Chip
-                  key={c.id}
-                  label={c.name}
-                  active={categoryId === c.id}
-                  onClick={() => {
-                    setCategoryId(c.id)
-                    if (c.defaultUnit) setUnit(c.defaultUnit)
-                  }}
-                />
-              ))}
-              <button
-                type="button"
-                className="min-h-9 rounded-full bg-[var(--fill)] px-3 text-[13px] text-[var(--accent)]"
-                onClick={async () => {
-                  const name = window.prompt('New category name')
-                  if (!name?.trim()) return
-                  const created = await categoryRepo.add({
-                    name: name.trim(),
-                    type,
-                    group: 'Custom',
-                    isCustom: true,
-                  })
-                  setCategoryId(created.id)
-                }}
-              >
-                + Custom
-              </button>
-            </div>
-          </details>
-        </section>
-
-        <NoteField
-          value={note}
-          onChange={setNote}
-          placeholder={other ? 'Add a note for this other expense' : 'Add a note for this expense'}
+    <form
+      className="space-y-3 px-4 pb-4"
+      onSubmit={(e) => {
+        e.preventDefault()
+        void save()
+      }}
+    >
+      <label className="block text-[13px] text-[var(--secondary)]">
+        Amount
+        <input
+          className={`${field} mt-1 tabular text-[20px] font-semibold`}
+          inputMode="decimal"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          placeholder="0"
+          autoFocus
+          required
         />
-
-        {!other && (
-          <section className="mt-3 px-4">
-            <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--tertiary)]">
-              Vendor
-            </div>
-            {recentVendors.length > 0 && (
-              <div className="mb-2 flex gap-1.5 overflow-x-auto no-scrollbar">
-                {recentVendors.map((id) => {
-                  const v = vendors.find((x) => x.id === id)
-                  if (!v) return null
-                  return (
-                    <Chip
-                      key={id}
-                      label={v.name}
-                      active={vendorId === id}
-                      onClick={() => {
-                        setVendorId(id)
-                        setVendorQuery(v.name)
-                      }}
-                    />
-                  )
-                })}
-              </div>
-            )}
-            <input
-              value={vendorQuery}
-              onChange={(e) => {
-                setVendorQuery(e.target.value)
-                setVendorId(undefined)
-              }}
-              placeholder="Optional — type a name"
-              className="h-11 w-full rounded-[12px] bg-[var(--fill)] px-3 text-[16px] outline-none"
-            />
-            {vendorQuery && !vendorId && vendorMatches.length > 0 && (
-              <div className="mt-1 overflow-hidden rounded-[12px] bg-[var(--card-solid)]">
-                {vendorMatches.slice(0, 5).map((v) => (
-                  <button
-                    key={v.id}
-                    type="button"
-                    className="flex h-11 w-full items-center px-3 text-left text-[15px] active:bg-[var(--fill)]"
-                    onClick={() => {
-                      setVendorId(v.id)
-                      setVendorQuery(v.name)
-                    }}
-                  >
-                    {v.name}
-                  </button>
-                ))}
-              </div>
-            )}
-            {vendorQuery && !vendorId && !vendorMatches.some((v) => v.name.toLowerCase() === vendorQuery.toLowerCase()) && (
-              <div className="mt-1 text-[12px] text-[var(--secondary)]">
-                Will create vendor “{vendorQuery.trim()}”
-              </div>
-            )}
-          </section>
-        )}
-
-        <section className="mt-3 px-4">
-          <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--tertiary)]">
-            Payment
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {PAYMENT_METHODS.map((m) => (
-              <Chip key={m} label={m} active={payment === m} onClick={() => setPayment(m)} />
-            ))}
-          </div>
-        </section>
-
-        <button
-          type="button"
-          className="mt-3 px-4 text-[13px] text-[var(--accent)]"
-          onClick={() => setMore((v) => !v)}
+      </label>
+      <label className="block text-[13px] text-[var(--secondary)]">
+        Site
+        <select className={`${field} mt-1`} value={siteId} onChange={(e) => setSiteId(e.target.value)}>
+          <option value="">Other (not a site)</option>
+          {sites.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.name}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="block text-[13px] text-[var(--secondary)]">
+        Category
+        <select
+          className={`${field} mt-1`}
+          value={categoryId}
+          onChange={(e) => {
+            setCategoryId(e.target.value)
+            const cat = categories.find((c) => c.id === e.target.value)
+            if (cat?.defaultUnit) setUnit(cat.defaultUnit)
+          }}
+          required
         >
-          {more ? 'Less' : 'Date and quantity'}
-        </button>
-        {more && (
-          <section className="mt-2 space-y-2 px-4">
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="h-11 w-full rounded-[12px] bg-[var(--fill)] px-3 text-[16px]"
-            />
-            <div className="flex gap-2">
-              <input
-                inputMode="decimal"
-                value={qty}
-                onChange={(e) => setQty(e.target.value)}
-                placeholder="Qty"
-                className="h-11 w-1/2 rounded-[12px] bg-[var(--fill)] px-3 text-[16px]"
-              />
-              <select
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-                className="h-11 w-1/2 rounded-[12px] bg-[var(--fill)] px-3 text-[16px]"
-              >
-                <option value="">Unit</option>
-                {UNITS.map((u) => (
-                  <option key={u} value={u}>
-                    {u}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </section>
-        )}
-      </div>
-
-      <div
-        className={cn('shrink-0 border-t border-[var(--hairline)] bg-[var(--sheet)] px-4 pt-3', variant === 'page' && 'bg-[var(--bg)]')}
-        style={{ paddingBottom: variant === 'page' ? 'max(12px, var(--safe-bottom))' : '12px' }}
+          <option value="">Choose category</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+      </label>
+      <button
+        type="button"
+        className="text-[13px] text-[var(--accent)]"
+        onClick={async () => {
+          const name = window.prompt('New category name')
+          if (!name?.trim()) return
+          const created = await categoryRepo.add({ name: name.trim(), type: 'expense', group: 'Custom', isCustom: true })
+          setCategoryId(created.id)
+        }}
       >
-        {error && <div className="mb-2 text-center text-[12px] text-[var(--expense)]">{error}</div>}
-        <button
-          type="button"
-          disabled={!canSave}
-          onClick={() => void save()}
-          className="pressable flex h-12 w-full items-center justify-center rounded-[14px] bg-[var(--accent)] text-[17px] font-semibold text-[var(--on-accent)] disabled:opacity-40"
-        >
-          {saving ? 'Saving…' : expenseId ? 'Save changes' : 'Save Expense'}
-        </button>
+        Add category
+      </button>
+      <label className="block text-[13px] text-[var(--secondary)]">
+        Vendor
+        <input
+          className={`${field} mt-1`}
+          list="vendor-names"
+          value={vendorQuery}
+          onChange={(e) => {
+            setVendorQuery(e.target.value)
+            setVendorId('')
+          }}
+          placeholder="Optional"
+        />
+        <datalist id="vendor-names">
+          {vendors.map((v) => (
+            <option key={v.id} value={v.name} />
+          ))}
+        </datalist>
+      </label>
+      <div className="grid grid-cols-2 gap-2">
+        <label className="block text-[13px] text-[var(--secondary)]">
+          Payment
+          <select className={`${field} mt-1`} value={payment} onChange={(e) => setPayment(e.target.value as PaymentMethod)}>
+            <option value="">—</option>
+            {PAYMENT_METHODS.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block text-[13px] text-[var(--secondary)]">
+          Date
+          <input className={`${field} mt-1`} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+        </label>
       </div>
-    </div>
+      <div className="grid grid-cols-2 gap-2">
+        <label className="block text-[13px] text-[var(--secondary)]">
+          Quantity
+          <input className={`${field} mt-1`} inputMode="decimal" value={qty} onChange={(e) => setQty(e.target.value)} placeholder="Optional" />
+        </label>
+        <label className="block text-[13px] text-[var(--secondary)]">
+          Unit
+          <select className={`${field} mt-1`} value={unit} onChange={(e) => setUnit(e.target.value)}>
+            <option value="">—</option>
+            {UNITS.map((u) => (
+              <option key={u} value={u}>
+                {u}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <label className="block text-[13px] text-[var(--secondary)]">
+        Note
+        <input className={`${field} mt-1`} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional" />
+      </label>
+      {error && <p className="text-[13px] text-[var(--expense)]">{error}</p>}
+      <button
+        type="submit"
+        disabled={saving}
+        className="h-11 w-full rounded-lg bg-[var(--accent)] text-[15px] font-semibold text-[var(--on-accent)] disabled:opacity-50"
+      >
+        {saving ? 'Saving…' : expenseId ? 'Save expense' : 'Add expense'}
+      </button>
+    </form>
   )
 }

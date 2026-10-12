@@ -1,116 +1,135 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
-import { Chip } from '@/components/ui/Chip'
-import { NoteField } from '@/components/ui/NoteField'
-import { NumberPad } from '@/components/ui/NumberPad'
 import { useApp } from '@/context/AppContext'
 import { db } from '@/db/db'
 import { incomeRepo } from '@/db/repositories'
 import { INCOME_SOURCES, PAYMENT_METHODS, type PaymentMethod } from '@/types'
 import { todayISO } from '@/utils/dates'
-import { haptic } from '@/utils/haptics'
+
+const field = 'h-11 w-full rounded-lg border border-[var(--separator)] bg-[var(--bg-elevated)] px-3 text-[15px] outline-none'
 
 export function IncomeForm({
   incomeId,
-  general,
   onSaved,
 }: {
   incomeId?: string
   general?: boolean
   onSaved?: () => void
 }) {
-  const { currentSiteId, settings } = useApp()
+  const { settings } = useApp()
   const existing = useLiveQuery(() => (incomeId ? db.incomes.get(incomeId) : undefined), [incomeId])
   const [amount, setAmount] = useState('')
-  const [source, setSource] = useState<string>('Office')
+  const [source, setSource] = useState('Office')
   const [payment, setPayment] = useState<PaymentMethod>(settings?.lastPaymentMethod ?? 'RTGS')
   const [note, setNote] = useState('')
   const [date, setDate] = useState(todayISO())
-  const [linkSite, setLinkSite] = useState(!general)
   const [hydrated, setHydrated] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
   if (existing && !hydrated) {
     setAmount(String(existing.amount))
-    setSource(existing.source)
+    setSource(existing.source || 'Office')
     setPayment(existing.paymentMethod ?? 'RTGS')
     setNote(existing.note ?? '')
     setDate(existing.date)
-    setLinkSite(!!existing.siteId)
     setHydrated(true)
   }
 
-  const parsed = Number(amount || 0)
-
   async function save() {
-    if (parsed <= 0) {
-      haptic('warning')
+    const parsed = Number(amount)
+    if (!(parsed > 0)) {
+      setError('Enter an amount')
       return
     }
     setSaving(true)
+    setError('')
+    try {
     const payload = {
-      siteId: linkSite ? currentSiteId : undefined,
       amount: parsed,
       source,
       paymentMethod: payment,
       date,
       note: note.trim() || undefined,
     }
-    if (incomeId) await incomeRepo.update(incomeId, payload)
-    else await incomeRepo.add(payload)
-    haptic('success')
-    setSaving(false)
+    if (incomeId) {
+      const row = await db.incomes.get(incomeId)
+      if (row) {
+        const next = { ...row, ...payload, updatedAt: new Date().toISOString() }
+        delete next.siteId
+        if (!payload.note) delete next.note
+        await db.incomes.put(next)
+      }
+    } else {
+      await incomeRepo.add(payload)
+    }
     onSaved?.()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save income')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto">
-        <NumberPad value={amount} onChange={setAmount} />
-        <section className="mt-3 px-4">
-          <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--tertiary)]">
-            Source
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {INCOME_SOURCES.map((s) => (
-              <Chip key={s} label={s} active={source === s} onClick={() => setSource(s)} />
-            ))}
-          </div>
-        </section>
-        <NoteField value={note} onChange={setNote} placeholder="Add a note for this income" />
-        <section className="mt-3 px-4">
-          <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--tertiary)]">
-            Payment
-          </div>
-          <div className="flex flex-wrap gap-1.5">
+    <form
+      className="space-y-3 px-4 pb-4"
+      onSubmit={(e) => {
+        e.preventDefault()
+        void save()
+      }}
+    >
+      <p className="text-[13px] text-[var(--secondary)]">Income is shared across every site.</p>
+      <label className="block text-[13px] text-[var(--secondary)]">
+        Amount
+        <input
+          className={`${field} mt-1 tabular text-[20px] font-semibold`}
+          inputMode="decimal"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          placeholder="0"
+          autoFocus
+          required
+        />
+      </label>
+      <label className="block text-[13px] text-[var(--secondary)]">
+        Source
+        <select className={`${field} mt-1`} value={source} onChange={(e) => setSource(e.target.value)}>
+          {INCOME_SOURCES.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
+      </label>
+      <div className="grid grid-cols-2 gap-2">
+        <label className="block text-[13px] text-[var(--secondary)]">
+          Payment
+          <select className={`${field} mt-1`} value={payment} onChange={(e) => setPayment(e.target.value as PaymentMethod)}>
             {PAYMENT_METHODS.map((m) => (
-              <Chip key={m} label={m} active={payment === m} onClick={() => setPayment(m)} />
+              <option key={m} value={m}>
+                {m}
+              </option>
             ))}
-          </div>
-        </section>
-        <label className="mt-3 flex items-center justify-between px-4 text-[15px]">
-          Link to current site
-          <input type="checkbox" checked={linkSite} onChange={(e) => setLinkSite(e.target.checked)} />
+          </select>
         </label>
-        <div className="mt-3 space-y-2 px-4 pb-3">
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="h-11 w-full rounded-[12px] bg-[var(--fill)] px-3 text-[16px]"
-          />
-        </div>
+        <label className="block text-[13px] text-[var(--secondary)]">
+          Date
+          <input className={`${field} mt-1`} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+        </label>
       </div>
-      <div className="shrink-0 border-t border-[var(--hairline)] bg-[var(--sheet)] px-4 pt-3 pb-3">
-        <button
-          type="button"
-          disabled={parsed <= 0 || saving}
-          onClick={() => void save()}
-          className="pressable flex h-12 w-full items-center justify-center rounded-[14px] bg-[var(--accent)] text-[17px] font-semibold text-[var(--on-accent)] disabled:opacity-40"
-        >
-          {incomeId ? 'Save changes' : 'Save Income'}
-        </button>
-      </div>
-    </div>
+      <label className="block text-[13px] text-[var(--secondary)]">
+        Note
+        <input className={`${field} mt-1`} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional" />
+      </label>
+      {error && <p className="text-[13px] text-[var(--expense)]">{error}</p>}
+      <button
+        type="submit"
+        disabled={saving}
+        className="h-11 w-full rounded-lg bg-[var(--accent)] text-[15px] font-semibold text-[var(--on-accent)] disabled:opacity-50"
+      >
+        {saving ? 'Saving…' : incomeId ? 'Save income' : 'Add income'}
+      </button>
+    </form>
   )
 }

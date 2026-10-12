@@ -147,16 +147,14 @@ export async function importExpenseRows(
       skipped += 1
       continue
     }
-    const kindRaw = String(pick(row, COL.kind) ?? '').trim().toLowerCase()
     const siteName = String(pick(row, COL.site) ?? '').trim()
-    const isOther = kindRaw === 'other' || (!siteName && kindRaw !== 'expense' && !opts.fallbackSiteId)
-    const type: CategoryType = isOther ? 'other' : 'expense'
+    const isOther = !siteName || siteName.toLowerCase() === 'other'
 
-    let category = cats.find((c) => c.name.toLowerCase() === catName.toLowerCase() && c.type === type)
+    let category = cats.find((c) => c.name.toLowerCase() === catName.toLowerCase())
     if (!category) {
       const created = await categoryRepo.add({
         name: catName,
-        type,
+        type: 'expense',
         group: 'Imported',
         isCustom: true,
       })

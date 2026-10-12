@@ -37,12 +37,10 @@ export function ExpenseDetail({ id }: { id: string }) {
             <span>{expense.paymentMethod}</span>
           </div>
         )}
-        {site && (
-          <div className="flex justify-between">
-            <span className="text-[var(--secondary)]">Site</span>
-            <span>{site.name}</span>
-          </div>
-        )}
+        <div className="flex justify-between">
+          <span className="text-[var(--secondary)]">Site</span>
+          <span>{site?.name ?? 'Other'}</span>
+        </div>
         {expense.quantity != null && (
           <div className="flex justify-between">
             <span className="text-[var(--secondary)]">Quantity</span>
@@ -59,7 +57,7 @@ export function ExpenseDetail({ id }: { id: string }) {
       <div className="mt-6 grid grid-cols-3 gap-2">
         <Button
           variant="secondary"
-          onClick={() => openSheet({ name: 'expense', expenseId: expense.id, other: !expense.siteId })}
+          onClick={() => openSheet({ name: 'expense', expenseId: expense.id })}
         >
           <Pencil size={16} className="mr-1" /> Edit
         </Button>

@@ -72,33 +72,15 @@
   --negative-bg: rgba(255, 105, 97, 0.12);
 }
 
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
 html {
   background: var(--bg);
-  width: 100%;
-  height: 100%;
-  height: 100svh;
-  height: 100dvh;
-  min-height: 100%;
-  min-height: -webkit-fill-available;
-}
-
-html,
-body {
-  margin: 0;
-  width: 100%;
-  overflow: hidden;
-  overscroll-behavior: none;
-}
-
-body {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  height: 100svh;
-  height: 100dvh;
-  min-height: 100%;
-  min-height: -webkit-fill-available;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -109,17 +91,7 @@ body {
 }
 
 #root {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  min-height: 100%;
-  min-height: -webkit-fill-available;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  padding-left: var(--safe-left);
-  padding-right: var(--safe-right);
+  min-height: 100vh;
 }
 
 body {
@@ -146,37 +118,6 @@ button {
 
 button {
   color: inherit;
-}
-
-.app-frame {
-  flex: 1;
-  min-height: 0;
-  width: 100%;
-  max-width: 100%;
-  height: 100%;
-  margin: 0 auto;
-  background: var(--bg);
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.app-frame > * {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-@media (min-width: 768px) {
-  html {
-    background: #111111;
-  }
-  .app-frame {
-    max-width: 440px;
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), var(--shadow);
-  }
 }
 
 .glass {

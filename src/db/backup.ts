@@ -1,4 +1,5 @@
 import { db } from '@/db/db'
+import { dedupeCategories } from '@/db/uniqueCategories'
 import type { BackupFile } from '@/types'
 import { nowISO } from '@/utils/id'
 
@@ -85,6 +86,7 @@ export async function importBackup(
       await db.categories.bulkAdd(file.data.categories)
       await db.settings.bulkAdd(file.data.settings.length ? file.data.settings : [])
     })
+    await dedupeCategories()
     return
   }
 
@@ -101,6 +103,7 @@ export async function importBackup(
       await db.settings.put({ ...(local ?? file.data.settings[0]), ...file.data.settings[0] })
     }
   })
+  await dedupeCategories()
 }
 
 async function mergeTable<T extends { id: string; updatedAt?: string }>(

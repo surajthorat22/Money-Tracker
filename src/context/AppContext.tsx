@@ -65,7 +65,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ready: settings !== undefined,
       settings,
       sites: [...sites].sort((a, b) => a.name.localeCompare(b.name)),
-      categories,
+      categories: [...categories].sort((a, b) => a.name.localeCompare(b.name)),
       vendors: [...vendors].sort((a, b) => a.name.localeCompare(b.name)),
       machines,
       currentSite,

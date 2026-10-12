@@ -5,19 +5,19 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { useApp } from '@/context/AppContext'
 import { useUI } from '@/context/UIContext'
 import { db } from '@/db/db'
-import { materialStats, siteExpenses } from '@/utils/calc'
+import { materialStats } from '@/utils/calc'
 import { formatDateFull } from '@/utils/dates'
 import { formatINR, formatQty, formatRate } from '@/utils/format'
 import { Back } from '@/pages/SitesSettingsPage'
 
 export function CategoryDetailPage() {
   const { id } = useParams()
-  const { categories, currentSiteId, vendors } = useApp()
+  const { categories, vendors, sites } = useApp()
   const { openSheet } = useUI()
   const nav = useNavigate()
   const category = categories.find((c) => c.id === id)
   const expensesAll = useLiveQuery(() => db.expenses.toArray(), []) ?? []
-  const expenses = (category?.type === 'other' ? expensesAll.filter((e) => e.categoryId === id) : siteExpenses(expensesAll, currentSiteId).filter((e) => e.categoryId === id)).sort((a, b) => b.date.localeCompare(a.date))
+  const expenses = expensesAll.filter((e) => e.categoryId === id).sort((a, b) => b.date.localeCompare(a.date))
   if (!category) return <EmptyState title="Category not found" body="" />
   const stats = materialStats(expenses, category.id)
 
@@ -52,7 +52,7 @@ export function CategoryDetailPage() {
               <div>
                 <div className="text-[15px]">{formatDateFull(e.date)}</div>
                 <div className="text-[12px] text-[var(--secondary)]">
-                  {vendor?.name ?? '—'}
+                  {sites.find((s) => s.id === e.siteId)?.name ?? 'Other'} · {vendor?.name ?? '—'}
                   {e.quantity != null ? ` · ${formatQty(e.quantity, e.unit)}` : ''}
                 </div>
               </div>

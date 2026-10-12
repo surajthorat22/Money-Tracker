@@ -1,14 +1,9 @@
 import { CategoryForm } from '@/components/expenses/CategoryForm'
 import { ExpenseDetail } from '@/components/expenses/ExpenseDetail'
 import { ExpenseForm } from '@/components/expenses/ExpenseForm'
-import { FilterSheet } from '@/components/expenses/FilterSheet'
 import { IncomeDetail } from '@/components/income/IncomeDetail'
 import { IncomeForm } from '@/components/income/IncomeForm'
-import { LogDetail } from '@/components/machines/LogDetail'
-import { MachineForm } from '@/components/machines/MachineForm'
-import { MachineLogForm } from '@/components/machines/MachineLogForm'
 import { SiteForm } from '@/components/sites/SiteForm'
-import { SiteSwitcher } from '@/components/sites/SiteSwitcher'
 import { Button } from '@/components/ui/Button'
 import { Sheet, SheetHeader } from '@/components/ui/Sheet'
 import { VendorForm } from '@/components/vendors/VendorForm'
@@ -17,31 +12,23 @@ import { useUI, type Sheet as SheetT } from '@/context/UIContext'
 function titleFor(sheet: SheetT): string {
   switch (sheet.name) {
     case 'expense':
-      return sheet.expenseId ? 'Edit Expense' : 'Add Expense'
+      return sheet.expenseId ? 'Edit expense' : 'Add expense'
     case 'expense-detail':
       return 'Expense'
     case 'income':
-      return sheet.incomeId ? 'Edit Income' : 'Add Income'
+      return sheet.incomeId ? 'Edit income' : 'Add income'
     case 'income-detail':
       return 'Income'
-    case 'log':
-      return sheet.logId ? 'Edit hours' : 'Log hours'
-    case 'log-detail':
-      return 'Hours log'
-    case 'site-switcher':
-      return 'Your Sites'
     case 'site-form':
-      return sheet.siteId ? 'Edit Site' : 'New Site'
+      return sheet.siteId ? 'Edit site' : 'New site'
     case 'vendor-form':
-      return sheet.vendorId ? 'Edit Vendor' : 'New Vendor'
+      return sheet.vendorId ? 'Edit vendor' : 'New vendor'
     case 'category-form':
-      return sheet.categoryId ? 'Edit Category' : 'New Category'
-    case 'machine-form':
-      return sheet.machineId ? 'Edit Machine' : 'New Machine'
-    case 'filters':
-      return 'Filters'
+      return sheet.categoryId ? 'Edit category' : 'New category'
     case 'confirm':
       return sheet.title
+    default:
+      return 'Money Tracker'
   }
 }
 
@@ -51,11 +38,11 @@ export function SheetHost() {
   const open = !!top
 
   return (
-    <Sheet open={open} onClose={closeSheet} title={top ? titleFor(top) : undefined} height={top?.name === 'expense' || top?.name === 'log' || top?.name === 'income' ? 'full' : 'auto'}>
+    <Sheet open={open} onClose={closeSheet} title={top ? titleFor(top) : undefined} height="auto">
       {top && (
         <>
           <SheetHeader title={titleFor(top)} onClose={top.name === 'confirm' ? undefined : closeSheet} />
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
             <SheetBody sheet={top} />
           </div>
         </>
@@ -70,29 +57,19 @@ function SheetBody({ sheet }: { sheet: SheetT }) {
 
   switch (sheet.name) {
     case 'expense':
-      return <ExpenseForm expenseId={sheet.expenseId} other={sheet.other} onSaved={saved} />
+      return <ExpenseForm expenseId={sheet.expenseId} onSaved={saved} />
     case 'expense-detail':
       return <ExpenseDetail id={sheet.id} />
     case 'income':
-      return <IncomeForm incomeId={sheet.incomeId} general={sheet.general} onSaved={saved} />
+      return <IncomeForm incomeId={sheet.incomeId} onSaved={saved} />
     case 'income-detail':
       return <IncomeDetail id={sheet.id} />
-    case 'log':
-      return <MachineLogForm logId={sheet.logId} machineId={sheet.machineId} onSaved={saved} />
-    case 'log-detail':
-      return <LogDetail id={sheet.id} />
-    case 'site-switcher':
-      return <SiteSwitcher />
     case 'site-form':
       return <SiteForm siteId={sheet.siteId} onSaved={saved} />
     case 'vendor-form':
       return <VendorForm vendorId={sheet.vendorId} onSaved={saved} />
     case 'category-form':
-      return <CategoryForm categoryId={sheet.categoryId} type={sheet.type} onSaved={saved} />
-    case 'machine-form':
-      return <MachineForm machineId={sheet.machineId} onSaved={saved} />
-    case 'filters':
-      return <FilterSheet />
+      return <CategoryForm categoryId={sheet.categoryId} onSaved={saved} />
     case 'confirm':
       return (
         <div className="px-5 pb-6">
@@ -113,5 +90,7 @@ function SheetBody({ sheet }: { sheet: SheetT }) {
           </div>
         </div>
       )
+    default:
+      return null
   }
 }

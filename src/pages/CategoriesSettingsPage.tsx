@@ -25,7 +25,7 @@ export function CategoriesSettingsPage() {
                 <Row
                   key={c.id}
                   label={c.name}
-                  subtitle={c.type === 'other' ? 'Non-site' : c.defaultUnit}
+                  subtitle={c.defaultUnit}
                   onClick={() => openSheet({ name: 'category-form', categoryId: c.id })}
                   trailing={
                     c.isCustom ? (
