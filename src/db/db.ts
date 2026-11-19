@@ -8,6 +8,7 @@ import type {
   Expense,
   Income,
   KvEntry,
+  OfficeSend,
   Machine,
   MachineLog,
   Site,
@@ -18,6 +19,7 @@ export class PlotTrackerDB extends Dexie {
   sites!: Table<Site, string>
   expenses!: Table<Expense, string>
   incomes!: Table<Income, string>
+  officeSends!: Table<OfficeSend, string>
   vendors!: Table<Vendor, string>
   machines!: Table<Machine, string>
   machineLogs!: Table<MachineLog, string>
@@ -42,6 +44,19 @@ export class PlotTrackerDB extends Dexie {
       sites: 'id, name, updatedAt',
       expenses: 'id, siteId, categoryId, vendorId, date, amount, updatedAt, [siteId+date]',
       incomes: 'id, siteId, date, source, updatedAt',
+      vendors: 'id, name, updatedAt',
+      machines: 'id, name',
+      machineLogs: 'id, siteId, machineId, date, [siteId+machineId]',
+      categories: 'id, type, name',
+      settings: 'id',
+      backupSnapshots: 'id, day, createdAt',
+      kv: 'id',
+    })
+    this.version(3).stores({
+      sites: 'id, name, updatedAt',
+      expenses: 'id, siteId, categoryId, vendorId, date, amount, updatedAt, [siteId+date]',
+      incomes: 'id, siteId, date, source, updatedAt',
+      officeSends: 'id, person, date, amount, updatedAt',
       vendors: 'id, name, updatedAt',
       machines: 'id, name',
       machineLogs: 'id, siteId, machineId, date, [siteId+machineId]',

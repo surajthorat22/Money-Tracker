@@ -7,14 +7,16 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import type { Expense, ExpenseFilters, Income } from '@/types'
-import { expenseRepo, incomeRepo } from '@/db/repositories'
+import type { Expense, ExpenseFilters, Income, OfficeSend } from '@/types'
+import { expenseRepo, incomeRepo, officeSendRepo } from '@/db/repositories'
 
 export type Sheet =
   | { name: 'expense'; expenseId?: string; other?: boolean }
   | { name: 'expense-detail'; id: string }
   | { name: 'income'; incomeId?: string; general?: boolean }
   | { name: 'income-detail'; id: string }
+  | { name: 'office'; sendId?: string }
+  | { name: 'office-detail'; id: string }
   | { name: 'site-form'; siteId?: string }
   | { name: 'vendor-form'; vendorId?: string }
   | { name: 'category-form'; categoryId?: string; type?: 'expense' | 'other' }
@@ -39,6 +41,7 @@ type UIState = {
   hideToast: () => void
   undoExpense: (row: Expense, message?: string) => Promise<void>
   undoIncome: (row: Income) => Promise<void>
+  undoOfficeSend: (row: OfficeSend) => Promise<void>
 }
 
 const Ctx = createContext<UIState | null>(null)
@@ -106,6 +109,20 @@ export function UIProvider({ children }: { children: ReactNode }) {
     [showToast],
   )
 
+  const undoOfficeSend = useCallback(
+    async (row: OfficeSend) => {
+      await officeSendRepo.remove(row.id)
+      showToast({
+        message: 'Office send deleted',
+        actionLabel: 'Undo',
+        onAction: () => {
+          void officeSendRepo.restore(row)
+        },
+      })
+    },
+    [showToast],
+  )
+
   const value = useMemo(
     () => ({
       sheets,
@@ -119,6 +136,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
       hideToast,
       undoExpense,
       undoIncome,
+      undoOfficeSend,
     }),
     [
       sheets,
@@ -132,6 +150,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
       hideToast,
       undoExpense,
       undoIncome,
+      undoOfficeSend,
     ],
   )
 

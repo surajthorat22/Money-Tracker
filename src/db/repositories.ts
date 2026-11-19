@@ -5,6 +5,7 @@ import type {
   Category,
   Expense,
   Income,
+  OfficeSend,
   PaymentMethod,
   Site,
   Vendor,
@@ -85,6 +86,25 @@ export const incomeRepo = {
   },
   restore: async (row: Income) => {
     await db.incomes.put(row)
+  },
+}
+
+export const officeSendRepo = {
+  all: () => db.officeSends.toArray(),
+  get: (id: string) => db.officeSends.get(id),
+  add: async (input: Omit<OfficeSend, 'id' | 'createdAt' | 'updatedAt'> & { id?: string; createdAt?: string; updatedAt?: string }) => {
+    const row: OfficeSend = withoutEmpty({ ...stamp(), ...input, id: input.id ?? nid() })
+    await db.officeSends.add(row)
+    return row
+  },
+  update: async (id: string, patch: Partial<OfficeSend>) => {
+    await db.officeSends.update(id, { ...patch, updatedAt: nowISO() })
+  },
+  remove: async (id: string) => {
+    await db.officeSends.delete(id)
+  },
+  restore: async (row: OfficeSend) => {
+    await db.officeSends.put(row)
   },
 }
 

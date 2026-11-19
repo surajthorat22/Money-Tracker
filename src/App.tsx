@@ -8,6 +8,7 @@ import { DataSettingsPage } from '@/pages/DataSettingsPage'
 import { ExpensesPage } from '@/pages/ExpensesPage'
 import { FilterPage } from '@/pages/FilterPage'
 import { IncomePage } from '@/pages/IncomePage'
+import { OfficePage } from '@/pages/OfficePage'
 import { OnboardingPage } from '@/pages/OnboardingPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { SitesSettingsPage } from '@/pages/SitesSettingsPage'
@@ -36,6 +37,7 @@ export default function App() {
       <Route element={<AppShell />}>
         <Route path="/" element={<ExpensesPage />} />
         <Route path="/income" element={<IncomePage />} />
+        <Route path="/office" element={<OfficePage />} />
         <Route path="/filter" element={<FilterPage />} />
         <Route path="/search" element={<Navigate to="/filter" replace />} />
         <Route path="/settings" element={<SettingsPage />} />

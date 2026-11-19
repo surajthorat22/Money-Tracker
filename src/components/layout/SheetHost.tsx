@@ -3,6 +3,8 @@ import { ExpenseDetail } from '@/components/expenses/ExpenseDetail'
 import { ExpenseForm } from '@/components/expenses/ExpenseForm'
 import { IncomeDetail } from '@/components/income/IncomeDetail'
 import { IncomeForm } from '@/components/income/IncomeForm'
+import { OfficeDetail } from '@/components/office/OfficeDetail'
+import { OfficeForm } from '@/components/office/OfficeForm'
 import { SiteForm } from '@/components/sites/SiteForm'
 import { Button } from '@/components/ui/Button'
 import { Sheet, SheetHeader } from '@/components/ui/Sheet'
@@ -19,6 +21,10 @@ function titleFor(sheet: SheetT): string {
       return sheet.incomeId ? 'Edit income' : 'Add income'
     case 'income-detail':
       return 'Income'
+    case 'office':
+      return sheet.sendId ? 'Edit office send' : 'Add office send'
+    case 'office-detail':
+      return 'Office'
     case 'site-form':
       return sheet.siteId ? 'Edit site' : 'New site'
     case 'vendor-form':
@@ -64,6 +70,10 @@ function SheetBody({ sheet }: { sheet: SheetT }) {
       return <IncomeForm incomeId={sheet.incomeId} onSaved={saved} />
     case 'income-detail':
       return <IncomeDetail id={sheet.id} />
+    case 'office':
+      return <OfficeForm sendId={sheet.sendId} onSaved={saved} />
+    case 'office-detail':
+      return <OfficeDetail id={sheet.id} />
     case 'site-form':
       return <SiteForm siteId={sheet.siteId} onSaved={saved} />
     case 'vendor-form':

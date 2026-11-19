@@ -8,7 +8,7 @@ export function AppShell() {
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--label)]">
       <Header />
-      <main className="mx-auto w-full max-w-5xl px-4 py-6 pb-24">
+      <main className="mx-auto w-full max-w-5xl px-4 py-6 pb-28">
         <Outlet />
       </main>
       <BottomNav />

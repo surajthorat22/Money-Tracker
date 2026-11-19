@@ -82,6 +82,17 @@ export type Income = {
   deletedAt?: string
 }
 
+export type OfficeSend = {
+  id: string
+  person: string
+  amount: number
+  paymentMethod?: PaymentMethod
+  date: string
+  note?: string
+  createdAt: string
+  updatedAt: string
+}
+
 export type Vendor = {
   id: string
   name: string
@@ -172,6 +183,7 @@ export type BackupFile = {
     sites: Site[]
     expenses: Expense[]
     incomes: Income[]
+    officeSends?: OfficeSend[]
     vendors: Vendor[]
     machines: Machine[]
     machineLogs: MachineLog[]

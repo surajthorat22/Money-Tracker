@@ -19,6 +19,7 @@ export async function exportBackup(): Promise<BackupFile> {
     sites,
     expenses,
     incomes,
+    officeSends,
     vendors,
     machines,
     machineLogs,
@@ -28,6 +29,7 @@ export async function exportBackup(): Promise<BackupFile> {
     db.sites.toArray(),
     db.expenses.toArray(),
     db.incomes.toArray(),
+    db.officeSends.toArray(),
     db.vendors.toArray(),
     db.machines.toArray(),
     db.machineLogs.toArray(),
@@ -43,6 +45,7 @@ export async function exportBackup(): Promise<BackupFile> {
       sites,
       expenses,
       incomes,
+      officeSends,
       vendors,
       machines,
       machineLogs,
@@ -80,6 +83,7 @@ export async function importBackup(
       await db.sites.bulkAdd(file.data.sites)
       await db.expenses.bulkAdd(file.data.expenses)
       await db.incomes.bulkAdd(file.data.incomes)
+      if (file.data.officeSends?.length) await db.officeSends.bulkAdd(file.data.officeSends)
       await db.vendors.bulkAdd(file.data.vendors)
       await db.machines.bulkAdd(file.data.machines)
       await db.machineLogs.bulkAdd(file.data.machineLogs)
@@ -94,6 +98,7 @@ export async function importBackup(
     await mergeTable(db.sites, file.data.sites)
     await mergeTable(db.expenses, file.data.expenses)
     await mergeTable(db.incomes, file.data.incomes)
+    if (file.data.officeSends) await mergeTable(db.officeSends, file.data.officeSends)
     await mergeTable(db.vendors, file.data.vendors)
     await mergeTable(db.machines, file.data.machines)
     await mergeTable(db.machineLogs, file.data.machineLogs)

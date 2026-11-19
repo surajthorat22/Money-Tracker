@@ -5,23 +5,24 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { useApp } from '@/context/AppContext'
 import { useUI } from '@/context/UIContext'
 import { db } from '@/db/db'
-import { otherExpenses, sumBy, totalsThisMonth } from '@/utils/calc'
+import { otherExpenses, sumBy } from '@/utils/calc'
 import { formatDateShort } from '@/utils/dates'
 import { formatINR } from '@/utils/format'
 import type { Expense } from '@/types'
 
 export function ExpensesPage() {
   const { categories, vendors, sites } = useApp()
-  const { openSheet, undoExpense } = useUI()
+  const { openSheet } = useUI()
   const expenses = useLiveQuery(() => db.expenses.toArray(), []) ?? []
   const incomes = useLiveQuery(() => db.incomes.toArray(), []) ?? []
+  const officeSends = useLiveQuery(() => db.officeSends.toArray(), []) ?? []
 
   const income = sumBy(incomes, (i) => i.amount)
   const spent = sumBy(expenses, (e) => e.amount)
   const other = sumBy(otherExpenses(expenses), (e) => e.amount)
   const onSites = spent - other
   const left = income - spent
-  const month = totalsThisMonth(expenses)
+  const office = sumBy(officeSends, (s) => s.amount)
 
   const bySite = useMemo(() => {
     return sites
@@ -76,7 +77,7 @@ export function ExpensesPage() {
           <Stat label="Other spending" value={formatINR(other)} tone="expense" />
         </Card>
         <Card>
-          <Stat label="This month" value={formatINR(month)} />
+          <Stat label="Office" value={formatINR(office)} />
         </Card>
       </div>
 
@@ -122,23 +123,21 @@ export function ExpensesPage() {
                   const vendor = vendors.find((v) => v.id === e.vendorId)
                   const site = sites.find((s) => s.id === e.siteId)
                   return (
-                    <div key={e.id} className="flex items-center gap-2 border-b border-[var(--separator)] px-3 py-2.5 last:border-b-0">
-                      <button
-                        type="button"
-                        className="min-w-0 flex-1 text-left"
-                        onClick={() => openSheet({ name: 'expense-detail', id: e.id })}
-                      >
+                    <button
+                      key={e.id}
+                      type="button"
+                      className="flex w-full items-center gap-2 border-b border-[var(--separator)] px-3 py-2.5 text-left last:border-b-0"
+                      onClick={() => openSheet({ name: 'expense-detail', id: e.id })}
+                    >
+                      <div className="min-w-0 flex-1">
                         <div className="truncate text-[15px] font-medium">{cat?.name ?? 'Expense'}</div>
                         <div className="truncate text-[12px] text-[var(--secondary)]">
                           {site?.name ?? 'Other'}
                           {vendor ? ` · ${vendor.name}` : ''}
                         </div>
-                      </button>
+                      </div>
                       <div className="tabular text-[15px] font-semibold">{formatINR(e.amount)}</div>
-                      <button type="button" className="text-[12px] text-[var(--secondary)]" onClick={() => void undoExpense(e)}>
-                        Delete
-                      </button>
-                    </div>
+                    </button>
                   )
                 })}
               </div>

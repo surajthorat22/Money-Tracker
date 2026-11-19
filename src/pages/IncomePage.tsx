@@ -8,7 +8,7 @@ import { formatDateShort } from '@/utils/dates'
 import { formatINR } from '@/utils/format'
 
 export function IncomePage() {
-  const { openSheet, undoIncome } = useUI()
+  const { openSheet } = useUI()
   const incomes = useLiveQuery(() => db.incomes.toArray(), []) ?? []
   const expenses = useLiveQuery(() => db.expenses.toArray(), []) ?? []
 
@@ -65,20 +65,22 @@ export function IncomePage() {
       ) : (
         <div className="mt-2 overflow-hidden rounded-xl border border-[var(--separator)] bg-[var(--card-solid)]">
           {sorted.map((i) => (
-            <div key={i.id} className="flex items-center gap-2 border-b border-[var(--separator)] px-3 py-2.5 last:border-b-0">
-              <button type="button" className="min-w-0 flex-1 text-left" onClick={() => openSheet({ name: 'income-detail', id: i.id })}>
+            <button
+              key={i.id}
+              type="button"
+              className="flex w-full items-center gap-2 border-b border-[var(--separator)] px-3 py-2.5 text-left last:border-b-0"
+              onClick={() => openSheet({ name: 'income-detail', id: i.id })}
+            >
+              <div className="min-w-0 flex-1">
                 <div className="font-medium">{i.source}</div>
                 <div className="text-[12px] text-[var(--secondary)]">
                   {formatDateShort(i.date)}
                   {i.paymentMethod ? ` · ${i.paymentMethod}` : ''}
                   {i.note ? ` · ${i.note}` : ''}
                 </div>
-              </button>
+              </div>
               <div className="tabular font-semibold text-[var(--income)]">{formatINR(i.amount)}</div>
-              <button type="button" className="text-[12px] text-[var(--secondary)]" onClick={() => void undoIncome(i)}>
-                Delete
-              </button>
-            </div>
+            </button>
           ))}
         </div>
       )}
